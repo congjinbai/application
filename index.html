@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Заявление · FUTURE BIOTECH</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #eef2f7;
+            padding: 16px 12px 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card {
+            max-width: 640px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            padding: 20px 16px 28px;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.06);
+        }
+        h1 {
+            font-size: 19px;
+            font-weight: 600;
+            color: #0b2b4a;
+            border-left: 5px solid #1f5b9e;
+            padding-left: 14px;
+            margin-bottom: 16px;
+        }
+        .doc-preview {
+            background: #fafcff;
+            border: 1px solid #d7e1ed;
+            border-radius: 20px;
+            padding: 18px 16px 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #1a2634;
+            margin-bottom: 24px;
+            font-family: 'Times New Roman', 'Georgia', serif;
+            box-shadow: inset 0 2px 6px rgba(0,0,0,0.01);
+        }
+        .doc-preview div { margin: 2px 0; }
+        .doc-preview .right { text-align: right; }
+        .doc-preview .center { text-align: center; }
+        .doc-preview .left { text-align: left; }
+        .doc-preview .flex-line { display: flex; justify-content: space-between; align-items: baseline; }
+        .placeholder {
+            border-bottom: 1px solid #1e3a5f;
+            padding: 0 4px;
+            min-width: 60px;
+            display: inline-block;
+        }
+        .field-group { margin-bottom: 16px; }
+        .field-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #1f3a5e;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .field-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            background: #f2f6fc;
+            padding: 8px 12px;
+            border-radius: 14px;
+        }
+        .field-row input {
+            flex: 1 1 100px;
+            min-width: 80px;
+            padding: 6px 10px;
+            border: 1px solid #c5d4e8;
+            border-radius: 30px;
+            font-size: 14px;
+            background: white;
+            outline: none;
+            transition: 0.15s;
+        }
+        .field-row input:focus {
+            border-color: #1f5b9e;
+            box-shadow: 0 0 0 3px rgba(31,91,158,0.12);
+        }
+        .field-row input::placeholder { color: #a0b3cc; font-weight: 300; font-size: 13px; }
+        .small-input { flex: 1 1 80px; min-width: 70px; }
+
+        .signature-area {
+            margin-top: 12px;
+            border: 1px dashed #8aa3c9;
+            border-radius: 24px;
+            padding: 12px 10px 10px;
+            background: #f8faff;
+            display: none;
+        }
+        .signature-area.visible { display: block; }
+        .signature-pad {
+            background: white;
+            border-radius: 16px;
+            touch-action: none;
+            width: 100%;
+            height: 120px;
+            border: 1px solid #c9d8ec;
+            cursor: crosshair;
+        }
+        .signature-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .btn {
+            border: none;
+            background: #eef3fc;
+            padding: 5px 18px;
+            border-radius: 40px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1f3a5e;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+        }
+        .btn-primary { background: #1a4e7a; color: white; }
+        .btn-primary:active { background: #0e3b5e; }
+        .btn-primary:disabled { opacity: 0.5; pointer-events: none; }
+        .btn-outline { background: transparent; border: 1px solid #b7cbe3; }
+        .btn-outline:active { background: #dee9f5; }
+        .btn-success { background: #1e7e34; color: white; }
+        .btn-success:active { background: #14632a; }
+        .btn-success:disabled { opacity: 0.5; pointer-events: none; }
+
+        .download-btn, .pdf-btn {
+            margin-top: 10px;
+            width: 100%;
+            background: #0b2b4a;
+            color: white;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 60px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 14px rgba(11,43,74,0.15);
+            transition: 0.2s;
+        }
+        .download-btn:active { transform: scale(0.97); background: #092138; }
+        .download-btn:disabled { background: #8a9bb0; box-shadow: none; transform: none; }
+        .pdf-btn { background: #1a5c7a; }
+        .pdf-btn:disabled { background: #8a9bb0; box-shadow: none; transform: none; }
+
+        .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .action-row .btn { flex: 1; text-align: center; padding: 10px 0; }
+
+        .footnote { font-size: 12px; color: #5d718a; margin-top: 16px; text-align: center; }
+        .hidden { display: none; }
+
+        /* Вторая страница — A4 формат для печати */
+        .page-second {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.1);
+        }
+        .page-second.visible { display: flex; }
+        .page-second .image-wrapper {
+            width: 100%;
+            background: white;
+            display: flex;
+            justify-content: center;
+            padding: 0;
+        }
+        .page-second img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: none;
+            border-radius: 4px;
+        }
+        .page-second .image-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            width: 100%;
+            padding: 0 4px;
+            flex-wrap: wrap;
+        }
+        .page-second .image-actions .btn { 
+            flex: 1; 
+            text-align: center; 
+            padding: 12px 0;
+            min-width: 120px;
+        }
+        .back-btn {
+            margin-top: 12px;
+            width: 100%;
+            padding: 12px;
+        }
+
+        .info-text {
+            font-size: 12px;
+            color: #2c4059;
+            background: #f2f6fc;
+            padding: 10px 14px;
+            border-radius: 14px;
+            margin: 12px 0 8px 0;
+            line-height: 1.6;
+        }
+        .info-text strong { color: #0b2b4a; }
+
+        @media print {
+            .page-second {
+                max-width: 100%;
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .page-second .image-actions, .back-btn { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="card" id="pageFirst">
+    <h1>📄 Бланк обращения</h1>
+
+    <!-- Превью — только русская часть -->
+    <div id="docPreview" class="doc-preview">
+        <div class="right">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
+        <div class="right">господину <strong>Ян Сияну</strong></div>
+        <div class="right">От <span id="previewFIO" class="placeholder">(ФИО заявителя)</span></div>
+        <br>
+        <div class="center"># ОБРАЩЕНИЕ</div>
+        <br>
+        <div>Я, <span id="previewFIO2" class="placeholder">(ФИО заявителя)</span>, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с <span id="previewDateReg" class="placeholder">(дата регистрации)</span> г. ID партнёра <span id="previewID" class="placeholder">(ID партнёра)</span>, Телефон при регистрации <span id="previewPhone" class="placeholder">(Номер телефона)</span>.</div>
+        <br>
+        <div>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию <span id="previewSponsorFIO" class="placeholder">(ФИО спонсора)</span>, <span id="previewSponsorID" class="placeholder">(ID партнёра спонсора)</span>, <span id="previewSponsorPhone" class="placeholder">(Номер телефона спонсора)</span>, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</div>
+        <br>
+        <div style="display:flex; justify-content:space-between;">
+            <span>Дата обращения: <span id="previewDateApp" class="placeholder">(Дата обращения)</span></span>
+            <span>ФИО: <span id="previewFIO3" class="placeholder">(ФИО заявителя)</span></span>
+        </div>
+        <div class="right">Подпись</div>
+        <div style="text-align:center; margin-top:4px;">________________________</div>
+        <br>
+        <!-- китайская часть не отображается -->
+    </div>
+
+    <!-- Заполнить информацию -->
+    <div style="font-weight:600; margin-bottom:8px;">Заполнить информацию:</div>
+
+    <!-- ПОЛЯ ВВОДА -->
+    <div class="field-group">
+        <span class="field-label">👤 ФИО заявителя</span>
+        <div class="field-row">
+            <input id="inputFam" placeholder="Фамилия" class="small-input" style="flex:1;" inputmode="text" autocomplete="off">
+            <input id="inputIm" placeholder="Имя" class="small-input" style="flex:1;" inputmode="text" autocomplete="off">
+            <input id="inputOtch" placeholder="Отчество (опц.)" class="small-input" style="flex:1;" inputmode="text" autocomplete="off">
+        </div>
+    </div>
+
+    <div class="field-group">
+        <span class="field-label">🆔 ID партнёра</span>
+        <div class="field-row"><input id="inputID" placeholder="Введите ID" value=""></div>
+    </div>
+
+    <div class="field-group">
+        <span class="field-label">📞 Номер телефона, формат: 11 цифр</span>
+        <div class="field-row"><input id="inputPhone" placeholder="11 цифр" inputmode="numeric" maxlength="11"></div>
+    </div>
+
+    <div class="field-group">
+        <span class="field-label">📅 Дата регистрации, формат: ддммгггг</span>
+        <div class="field-row"><input id="inputDateReg" placeholder="ддммгггг" inputmode="numeric" maxlength="8"></div>
+    </div>
+
+    <div class="field-group">
+        <span class="field-label">👤 Спонсор</span>
+        <div class="field-row">
+            <input id="inputSponsorFam" placeholder="Фамилия спонсора" class="small-input" inputmode="text" autocomplete="off">
+            <input id="inputSponsorIm" placeholder="Имя спонсора" class="small-input" inputmode="text" autocomplete="off">
+            <input id="inputSponsorOtch" placeholder="Отчество спонсора (опц.)" class="small-input" inputmode="text" autocomplete="off">
+        </div>
+        <div class="field-row" style="margin-top:6px;">
+            <input id="inputSponsorID" placeholder="ID партнёра спонсора" style="flex:1;">
+            <input id="inputSponsorPhone" placeholder="Телефон спонсора (11 цифр)" style="flex:1;" inputmode="numeric" maxlength="11">
+        </div>
+    </div>
+
+    <!-- Инфо-текст -->
+    <div class="info-text">
+        <strong>Осуществить подачу заявки можно двумя способами:</strong><br>
+        1. Заполните все необходимые данные, нажмите кнопку «Скачать» — система сгенерирует документ Word. Распечатайте его, подпишите, сделайте снимок заполненного документа и отправьте скриншот на электронную почту 243669280@qq.com;<br>
+        2. Нажмите кнопку «Онлайн-подписание», подпишитесь на электронной доске для рукописного ввода, затем нажмите кнопку «Подтвердить». После этого будет создано изображение формата JPG. Вы можете сохранить его в галерею телефона либо нажать кнопку «Отправить на почту» для мгновенной отправки файла на адрес 243669280@qq.com.
+    </div>
+
+    <!-- Кнопки -->
+    <div class="action-row">
+        <button class="btn btn-success" id="downloadDocBtn" disabled>⬇ Скачать.docx</button>
+        <button class="btn btn-primary" id="onlineSignBtn" disabled>✍ Онлайн-подписание</button>
+    </div>
+
+    <!-- Подпись -->
+    <div id="signatureArea" class="signature-area">
+        <span class="field-label" style="margin-bottom:4px;">✍️ Подпись (синяя ручка)</span>
+        <canvas id="signatureCanvas" class="signature-pad"></canvas>
+        <div class="signature-actions">
+            <button class="btn btn-outline" id="clearSignatureBtn">✕ Очистить</button>
+            <button class="btn btn-primary" id="confirmSignatureBtn" disabled>✔ Подтвердить</button>
+        </div>
+        <button class="pdf-btn" id="createImageBtn" disabled>🖼 Создать изображение</button>
+    </div>
+
+    <div class="footnote">* Все поля синхронизируются. Подпись вставляется после подтверждения.</div>
+</div>
+
+<!-- Вторая страница: Для скриншота (A4 формат) -->
+<div class="page-second" id="pageSecond">
+    <div class="image-wrapper" id="imageWrapper">
+        <div id="imageContainer" style="width:100%;"></div>
+    </div>
+    <div class="image-actions">
+        <button class="btn btn-success" id="saveImageBtn">💾 Сохранить в галерею</button>
+        <button class="btn btn-primary" id="sendEmailBtn">📧 Отправить на почту</button>
+        <button class="btn btn-outline" id="printImageBtn">🖨 Печать</button>
+    </div>
+    <button class="btn btn-outline back-btn" id="backToFormBtn">← Вернуться к форме</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+    (function(){
+        // ----- DOM -----
+        const previewFIO = document.getElementById('previewFIO');
+        const previewFIO2 = document.getElementById('previewFIO2');
+        const previewFIO3 = document.getElementById('previewFIO3');
+        const previewID = document.getElementById('previewID');
+        const previewPhone = document.getElementById('previewPhone');
+        const previewDateReg = document.getElementById('previewDateReg');
+        const previewDateApp = document.getElementById('previewDateApp');
+        const previewSponsorFIO = document.getElementById('previewSponsorFIO');
+        const previewSponsorID = document.getElementById('previewSponsorID');
+        const previewSponsorPhone = document.getElementById('previewSponsorPhone');
+
+        const inputFam = document.getElementById('inputFam');
+        const inputIm = document.getElementById('inputIm');
+        const inputOtch = document.getElementById('inputOtch');
+        const inputID = document.getElementById('inputID');
+        const inputPhone = document.getElementById('inputPhone');
+        const inputDateReg = document.getElementById('inputDateReg');
+        const inputSponsorFam = document.getElementById('inputSponsorFam');
+        const inputSponsorIm = document.getElementById('inputSponsorIm');
+        const inputSponsorOtch = document.getElementById('inputSponsorOtch');
+        const inputSponsorID = document.getElementById('inputSponsorID');
+        const inputSponsorPhone = document.getElementById('inputSponsorPhone');
+
+        const downloadDocBtn = document.getElementById('downloadDocBtn');
+        const onlineSignBtn = document.getElementById('onlineSignBtn');
+        const signatureArea = document.getElementById('signatureArea');
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        const confirmSignatureBtn = document.getElementById('confirmSignatureBtn');
+        const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+        const createImageBtn = document.getElementById('createImageBtn');
+        const imageContainer = document.getElementById('imageContainer');
+        const pageSecond = document.getElementById('pageSecond');
+        const pageFirst = document.getElementById('pageFirst');
+        const backToFormBtn = document.getElementById('backToFormBtn');
+        const saveImageBtn = document.getElementById('saveImageBtn');
+        const sendEmailBtn = document.getElementById('sendEmailBtn');
+        const printImageBtn = document.getElementById('printImageBtn');
+
+        let isDrawing = false, lastX=0, lastY=0;
+        let signatureData = null;
+        let signatureConfirmed = false;
+        let currentImageData = null;
+
+        // ----- helpers -----
+        function capitalizeFirst(str) {
+            if (!str) return '';
+            return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+        }
+
+        function getFIO() {
+            let fam = inputFam.value.trim();
+            let im = inputIm.value.trim();
+            let otch = inputOtch.value.trim();
+            let parts = [];
+            if (fam) parts.push(capitalizeFirst(fam));
+            if (im) parts.push(capitalizeFirst(im));
+            if (otch) parts.push(capitalizeFirst(otch));
+            return parts.join(' ').trim() || '(ФИО заявителя)';
+        }
+
+        // Формат "Фамилия. И. О." (с пробелами после точек)
+        function getShortFIO() {
+            let fam = inputFam.value.trim();
+            let im = inputIm.value.trim();
+            let otch = inputOtch.value.trim();
+            if (!fam && !im) return '(ФИО заявителя)';
+            let result = fam ? capitalizeFirst(fam) : '';
+            if (im) result += '. ' + im.charAt(0).toUpperCase() + '.';
+            if (otch) result += ' ' + otch.charAt(0).toUpperCase() + '.';
+            if (!result) return '(ФИО заявителя)';
+            return result;
+        }
+
+        function getSponsorFIO() {
+            let fam = inputSponsorFam.value.trim();
+            let im = inputSponsorIm.value.trim();
+            let otch = inputSponsorOtch.value.trim();
+            let parts = [];
+            if (fam) parts.push(capitalizeFirst(fam));
+            if (im) parts.push(capitalizeFirst(im));
+            if (otch) parts.push(capitalizeFirst(otch));
+            return parts.join(' ').trim() || '(ФИО спонсора)';
+        }
+
+        function onlyDigits(str) { return str.replace(/\D/g,''); }
+
+        function formatPhone(phoneDigits) {
+            if (!phoneDigits || phoneDigits.length !== 11) return '(Номер телефона)';
+            let first = phoneDigits[0];
+            let rest = phoneDigits.substring(1);
+            let prefix = (first === '8') ? '+7' : '+' + first;
+            let part1 = rest.substring(0,3);
+            let part2 = rest.substring(3,6);
+            let part3 = rest.substring(6,8);
+            let part4 = rest.substring(8,10);
+            return `${prefix} (${part1}) ${part2}-${part3}-${part4}`;
+        }
+
+        function formatDateReg(raw) {
+            if (!raw || raw.length !== 8) return '(дата регистрации)';
+            let d = raw.substring(0,2);
+            let m = raw.substring(2,4);
+            let y = raw.substring(4,8);
+            return `${d}.${m}.${y}`;
+        }
+
+        function getToday() {
+            const d = new Date();
+            let dd = String(d.getDate()).padStart(2,'0');
+            let mm = String(d.getMonth()+1).padStart(2,'0');
+            let yyyy = d.getFullYear();
+            return `${dd}.${mm}.${yyyy} г.`;
+        }
+
+        function getChineseDate(dateStr) {
+            if (!dateStr || dateStr === '(дата регистрации)') return '(дата регистрации)';
+            let parts = dateStr.split('.');
+            if (parts.length !== 3) return dateStr;
+            return `${parts[2]}年${parts[1]}月${parts[0]}日`;
+        }
+
+        // ----- обновление -----
+        function updateAll() {
+            const fio = getFIO();
+            const shortFio = getShortFIO();
+            previewFIO.textContent = fio;
+            previewFIO2.textContent = fio;
+            previewFIO3.textContent = shortFio;
+
+            const id = inputID.value.trim() || '(ID партнёра)';
+            previewID.textContent = id;
+
+            const phoneRaw = onlyDigits(inputPhone.value);
+            const phoneDisplay = (phoneRaw.length === 11) ? formatPhone(phoneRaw) : '(Номер телефона)';
+            previewPhone.textContent = phoneDisplay;
+
+            const dateRegRaw = onlyDigits(inputDateReg.value);
+            const dateRegDisplay = (dateRegRaw.length === 8) ? formatDateReg(dateRegRaw) : '(дата регистрации)';
+            previewDateReg.textContent = dateRegDisplay;
+
+            const sfio = getSponsorFIO();
+            previewSponsorFIO.textContent = sfio;
+
+            const sidRaw = inputSponsorID.value.trim();
+            let sidDisplay = sidRaw || '(ID партнёра спонсора)';
+            if (sidRaw) sidDisplay = 'ID ' + sidRaw;
+            previewSponsorID.textContent = sidDisplay;
+
+            const sPhoneRaw = onlyDigits(inputSponsorPhone.value);
+            let sPhoneDisplay = (sPhoneRaw.length === 11) ? formatPhone(sPhoneRaw) : '(Номер телефона спонсора)';
+            if (sPhoneRaw.length === 11) sPhoneDisplay = 'телефон ' + sPhoneDisplay;
+            previewSponsorPhone.textContent = sPhoneDisplay;
+
+            previewDateApp.textContent = getToday();
+
+            // Валидация
+            const famOk = inputFam.value.trim().length > 0;
+            const imOk = inputIm.value.trim().length > 0;
+            const idOk = inputID.value.trim().length > 0;
+            const phoneOk = onlyDigits(inputPhone.value).length === 11;
+            const dateOk = onlyDigits(inputDateReg.value).length === 8;
+            const sfamOk = inputSponsorFam.value.trim().length > 0;
+            const simOk = inputSponsorIm.value.trim().length > 0;
+            const sidOk = inputSponsorID.value.trim().length > 0;
+            const sphoneOk = onlyDigits(inputSponsorPhone.value).length === 11;
+            const allReq = famOk && imOk && idOk && phoneOk && dateOk && sfamOk && simOk && sidOk && sphoneOk;
+
+            downloadDocBtn.disabled = !allReq;
+            onlineSignBtn.disabled = !allReq;
+        }
+
+        // ----- события -----
+        [inputFam, inputIm, inputOtch, inputID, inputPhone, inputDateReg,
+         inputSponsorFam, inputSponsorIm, inputSponsorOtch, inputSponsorID, inputSponsorPhone].forEach(el => {
+            el.addEventListener('input', updateAll);
+            el.addEventListener('change', updateAll);
+        });
+
+        // Запрет цифр и символов в полях ФИО, автоматическое переключение регистра
+        function handleFIOInput(e) {
+            let val = e.target.value;
+            val = val.replace(/[^a-zA-Zа-яА-Я]/g, '');
+            if (val.length > 0) {
+                val = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
+            }
+            e.target.value = val;
+            updateAll();
+        }
+        [inputFam, inputIm, inputOtch, inputSponsorFam, inputSponsorIm, inputSponsorOtch].forEach(el => {
+            el.addEventListener('input', handleFIOInput);
+            el.addEventListener('focus', function() {
+                this.setAttribute('autocapitalize', 'characters');
+            });
+            el.addEventListener('blur', function() {
+                this.setAttribute('autocapitalize', 'off');
+            });
+        });
+
+        // Цифровые поля
+        [inputPhone, inputSponsorPhone].forEach(el => {
+            el.addEventListener('input', function(e) {
+                this.value = this.value.replace(/\D/g, '').slice(0,11);
+                updateAll();
+            });
+        });
+        inputDateReg.addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '').slice(0,8);
+            updateAll();
+        });
+
+        // ----- подпись (синяя ручка) -----
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width || 400;
+            canvas.height = rect.height || 120;
+            if (signatureData && signatureData !== 'drawing') {
+                const img = new Image();
+                img.onload = () => { ctx.drawImage(img, 0, 0); };
+                img.src = signatureData;
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            return { x: (touch.clientX - rect.left) * (canvas.width / rect.width), y: (touch.clientY - rect.top) * (canvas.height / rect.height) };
+        }
+        function startDraw(e) { e.preventDefault(); isDrawing=true; const p=getCoords(e); lastX=p.x; lastY=p.y; }
+        function draw(e) {
+            e.preventDefault();
+            if(!isDrawing) return;
+            const p=getCoords(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX,lastY);
+            ctx.lineTo(p.x,p.y);
+            ctx.strokeStyle = '#1a5bb5';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            lastX=p.x; lastY=p.y;
+            if (signatureData === null || signatureData === 'drawing') {
+                signatureData = 'drawing';
+                confirmSignatureBtn.disabled = false;
+            }
+        }
+        function endDraw(e) {
+            e.preventDefault();
+            if(isDrawing) {
+                isDrawing = false;
+                signatureData = canvas.toDataURL('image/png');
+                confirmSignatureBtn.disabled = false;
+                createImageBtn.disabled = true;
+            }
+        }
+        canvas.addEventListener('mousedown',startDraw);
+        canvas.addEventListener('mousemove',draw);
+        canvas.addEventListener('mouseup',endDraw);
+        canvas.addEventListener('mouseleave',endDraw);
+        canvas.addEventListener('touchstart',startDraw,{passive:false});
+        canvas.addEventListener('touchmove',draw,{passive:false});
+        canvas.addEventListener('touchend',endDraw,{passive:false});
+        canvas.addEventListener('touchcancel',endDraw,{passive:false});
+
+        clearSignatureBtn.addEventListener('click', function() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle='white';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            signatureData = null;
+            signatureConfirmed = false;
+            confirmSignatureBtn.disabled = true;
+            createImageBtn.disabled = true;
+        });
+
+        confirmSignatureBtn.addEventListener('click', function() {
+            if (!signatureData || signatureData === 'drawing') {
+                alert('Нарисуйте подпись.');
+                return;
+            }
+            signatureConfirmed = true;
+            createImageBtn.disabled = false;
+        });
+
+        onlineSignBtn.addEventListener('click', function() {
+            signatureArea.classList.toggle('visible');
+            if (signatureArea.classList.contains('visible')) {
+                setTimeout(resizeCanvas, 100);
+            }
+        });
+
+        // ----- Скачать.docx (Word) -----
+        downloadDocBtn.addEventListener('click', function() {
+            const fio = getFIO();
+            const shortFio = getShortFIO();
+            const id = inputID.value.trim() || '(ID партнёра)';
+            const phoneRaw = onlyDigits(inputPhone.value);
+            const phoneDisplay = (phoneRaw.length === 11) ? formatPhone(phoneRaw) : '(Номер телефона)';
+            const dateRegRaw = onlyDigits(inputDateReg.value);
+            const dateRegDisplay = (dateRegRaw.length === 8) ? formatDateReg(dateRegRaw) : '(дата регистрации)';
+            const sfio = getSponsorFIO();
+            const sidRaw = inputSponsorID.value.trim();
+            const sidDisplay = sidRaw ? 'ID ' + sidRaw : '(ID партнёра спонсора)';
+            const sPhoneRaw = onlyDigits(inputSponsorPhone.value);
+            let sPhoneDisplay = (sPhoneRaw.length === 11) ? formatPhone(sPhoneRaw) : '(Номер телефона спонсора)';
+            if (sPhoneRaw.length === 11) sPhoneDisplay = 'телефон ' + sPhoneDisplay;
+            const today = getToday();
+
+            const chineseDateReg = getChineseDate(dateRegDisplay);
+            const chineseToday = getChineseDate(today.replace(' г.', ''));
+            const chineseSid = sidRaw ? '会员编号' + sidRaw : '(ID партнёра спонсора)';
+            const chineseSphone = (sPhoneRaw.length === 11) ? '手机号：' + sPhoneDisplay.replace('телефон ', '') : '(Номер телефона спонсора)';
+
+            const bold = (text) => `<strong>${text}</strong>`;
+
+            const docContent = `
+                <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
+                <head><meta charset="UTF-8"><title>Обращение</title>
+                <style>
+                    @page { margin: 1.5cm; }
+                    body { font-family: 'Times New Roman', serif; font-size: 10pt; }
+                    .chinese { font-family: 'Times New Roman', serif; font-size: 10pt; }
+                    div { margin: 2px 0; }
+                    .right { text-align: right; }
+                    .center { text-align: center; }
+                    .left { text-align: left; }
+                    .clear { clear: both; }
+                    .flex-row { display: flex; justify-content: space-between; }
+                    .underline { text-decoration: none; border-bottom: 1px solid #000; display: inline-block; min-width: 200px; }
+                </style>
+                </head>
+                <body>
+                    <div class="right">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
+                    <div class="right">господину <strong>Ян Сияну</strong></div>
+                    <div class="right">От ${bold(fio)}</div>
+                    <br>
+                    <div class="center"># ОБРАЩЕНИЕ</div>
+                    <br>
+                    <div>Я, ${bold(fio)}, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с ${bold(dateRegDisplay)} г. ID партнёра ${bold(id)}, Телефон при регистрации ${bold(phoneDisplay)}.</div>
+                    <br>
+                    <div>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию ${bold(sfio)}, ${bold(sidDisplay)}, ${bold(sPhoneDisplay)}, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</div>
+                    <br>
+                    <div class="flex-row">
+                        <span>Дата обращения: ${bold(today)}</span>
+                        <span>ФИО: ${bold(shortFio)}</span>
+                    </div>
+                    <div class="right">Подпись</div>
+                    <div class="center"><span class="underline">&nbsp;</span></div>
+                    <br>
+                    <!-- КИТАЙСКАЯ ЧАСТЬ (Times New Roman, 10pt) -->
+                    <div class="chinese right">致未来生物科技集团</div>
+                    <div class="chinese right">俄罗斯区负责人</div>
+                    <div class="chinese right">杨希阳</div>
+                    <br>
+                    <div class="chinese center">申请书</div>
+                    <br>
+                    <div class="chinese">本人${bold(fio)}，自${bold(chineseDateReg)}起成为未来生物科技集团 (俄罗斯区域) 合作经销商，会员编号：${bold(id)}，注册预留手机号：${bold(phoneDisplay)}。</div>
+                    <br>
+                    <div class="chinese">恳请贵公司将本人及全部下属团队架构整体迁移至${bold(sfio)}，${bold(chineseSid)}，${bold(chineseSphone)}的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</div>
+                    <br>
+                    <div class="flex-row chinese">
+                        <span>申请日期：${bold(chineseToday)}</span>
+                        <span>申请人：${bold(shortFio)}</span>
+                    </div>
+                    <div class="chinese right">签字</div>
+                </body>
+                </html>
+            `;
+            const blob = new Blob([docContent], { type: 'application/msword' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'Obrashchenie_FUTURE_BIOTECH.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        });
+
+        // ----- Создать изображение (переход на вторую страницу, A4 пропорции) -----
+        createImageBtn.addEventListener('click', function() {
+            if (!signatureConfirmed || !signatureData || signatureData === 'drawing') {
+                alert('Подпись не подтверждена.');
+                return;
+            }
+
+            const fio = getFIO();
+            const shortFio = getShortFIO();
+            const id = inputID.value.trim() || '(ID партнёра)';
+            const phoneRaw = onlyDigits(inputPhone.value);
+            const phoneDisplay = (phoneRaw.length === 11) ? formatPhone(phoneRaw) : '(Номер телефона)';
+            const dateRegRaw = onlyDigits(inputDateReg.value);
+            const dateRegDisplay = (dateRegRaw.length === 8) ? formatDateReg(dateRegRaw) : '(дата регистрации)';
+            const sfio = getSponsorFIO();
+            const sidRaw = inputSponsorID.value.trim();
+            const sidDisplay = sidRaw ? 'ID ' + sidRaw : '(ID партнёра спонсора)';
+            const sPhoneRaw = onlyDigits(inputSponsorPhone.value);
+            let sPhoneDisplay = (sPhoneRaw.length === 11) ? formatPhone(sPhoneRaw) : '(Номер телефона спонсора)';
+            if (sPhoneRaw.length === 11) sPhoneDisplay = 'телефон ' + sPhoneDisplay;
+            const today = getToday();
+
+            const chineseDateReg = getChineseDate(dateRegDisplay);
+            const chineseToday = getChineseDate(today.replace(' г.', ''));
+            const chineseSid = sidRaw ? '会员编号' + sidRaw : '(ID партнёра спонсора)';
+            const chineseSphone = (sPhoneRaw.length === 11) ? '手机号：' + sPhoneDisplay.replace('телефон ', '') : '(Номер телефона спонсора)';
+
+            let sigImg = '';
+            if (signatureData && signatureData !== 'drawing') {
+                sigImg = `<img src="${signatureData}" style="height:20px; vertical-align:middle;" />`;
+            } else {
+                sigImg = '________';
+            }
+
+            // Выравнивание по центру для китайской части согласно скриншоту:
+            // "致未来生物科技集团", "俄罗斯区负责人", "杨希阳" — справа
+            // "申请书" — по центру
+            // "本人..." — слева
+            // "申请日期" и "申请人" — слева и справа
+            // "签字" — справа
+            const content = `
+                <div style="font-family: 'Times New Roman', serif; font-size: 10pt; width: 210mm; min-height: 297mm; padding: 1.5cm; background: white; margin: 0 auto; box-sizing: border-box;">
+                    <div style="text-align:right;">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
+                    <div style="text-align:right;">господину <strong>Ян Сияну</strong></div>
+                    <div style="text-align:right;">От <strong>${fio}</strong></div>
+                    <br>
+                    <div style="text-align:center;"># ОБРАЩЕНИЕ</div>
+                    <br>
+                    <div>Я, <strong>${fio}</strong>, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с <strong>${dateRegDisplay}</strong> г. ID партнёра <strong>${id}</strong>, Телефон при регистрации <strong>${phoneDisplay}</strong>.</div>
+                    <br>
+                    <div>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию <strong>${sfio}</strong>, <strong>${sidDisplay}</strong>, <strong>${sPhoneDisplay}</strong>, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</div>
+                    <br>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Дата обращения: <strong>${today}</strong></span>
+                        <span>ФИО: <strong>${shortFio}</strong></span>
+                    </div>
+                    <div style="text-align:right;">Подпись ${sigImg}</div>
+                    <div style="text-align:center; margin-top:4px;">________________________</div>
+                    <br>
+                    <!-- КИТАЙСКАЯ ЧАСТЬ (Times New Roman, 10pt) — выравнивание как на скриншоте -->
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">致未来生物科技集团</div>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">俄罗斯区负责人</div>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">杨希阳</div>
+                    <br>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:center;">申请书</div>
+                    <br>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:left;">本人<strong>${fio}</strong>，自<strong>${chineseDateReg}</strong>起成为未来生物科技集团 (俄罗斯区域) 合作经销商，会员编号：<strong>${id}</strong>，注册预留手机号：<strong>${phoneDisplay}</strong>。</div>
+                    <br>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:left;">恳请贵公司将本人及全部下属团队架构整体迁移至<strong>${sfio}</strong>，<strong>${chineseSid}</strong>，<strong>${chineseSphone}</strong>的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</div>
+                    <br>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; display:flex; justify-content:space-between;">
+                        <span>申请日期：<strong>${chineseToday}</strong></span>
+                        <span>申请人：<strong>${shortFio}</strong></span>
+                    </div>
+                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">签字</div>
+                </div>
+            `;
+
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = content;
+            wrapper.style.position = 'absolute';
+            wrapper.style.left = '-9999px';
+            wrapper.style.top = '0';
+            wrapper.style.width = '210mm';
+            document.body.appendChild(wrapper);
+
+            html2canvas(wrapper, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff',
+                width: 210 * 3.78,
+                height: 297 * 3.78,
+            }).then(canvasImg => {
+                document.body.removeChild(wrapper);
+                const imgData = canvasImg.toDataURL('image/png');
+                currentImageData = imgData;
+                pageSecond.classList.add('visible');
+                pageFirst.style.display = 'none';
+                imageContainer.innerHTML = `<img src="${imgData}" alt="Заявление" style="width:100%; height:auto; display:block;" />`;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }).catch(() => {
+                document.body.removeChild(wrapper);
+            });
+        });
+
+        // ----- Вторая страница: кнопки -----
+        backToFormBtn.addEventListener('click', function() {
+            pageSecond.classList.remove('visible');
+            pageFirst.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        saveImageBtn.addEventListener('click', function() {
+            if (!currentImageData) return;
+            const link = document.createElement('a');
+            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
+            link.href = currentImageData;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        sendEmailBtn.addEventListener('click', function() {
+            if (!currentImageData) return;
+            const fio = getFIO();
+            const today = getToday();
+            const subject = `Обращение от ${fio} от ${today}`;
+            window.location.href = `mailto:243669280@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Смотрите вложение (скриншот заявления).')}`;
+            const link = document.createElement('a');
+            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
+            link.href = currentImageData;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        printImageBtn.addEventListener('click', function() {
+            if (!currentImageData) return;
+            const win = window.open('', '_blank');
+            if (win) {
+                win.document.write(`
+                    <html><head><title>Печать заявления</title>
+                    <style>
+                        body { margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: white; }
+                        img { max-width: 100%; height: auto; }
+                        @page { margin: 0; }
+                    </style>
+                    </head><body>
+                    <img src="${currentImageData}" style="width:210mm; height:auto;" />
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                    </body></html>
+                `);
+                win.document.close();
+            }
+        });
+
+        window.addEventListener('load', ()=>{ resizeCanvas(); updateAll(); });
+        window.addEventListener('resize', resizeCanvas);
+
+        updateAll();
+    })();
+</script>
+</body>
+</html>
