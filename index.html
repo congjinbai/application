@@ -220,17 +220,20 @@
         }
         .info-text strong { color: #0b2b4a; }
 
-        .warning-text {
-            font-size: 12px;
+        .warning-toast {
+            font-size: 13px;
             color: #c62828;
             background: #ffebee;
-            padding: 6px 12px;
+            padding: 8px 14px;
             border-radius: 10px;
             margin-bottom: 8px;
             text-align: center;
             display: none;
+            border: 1px solid #ef9a9a;
+            font-weight: 500;
+            transition: opacity 0.3s;
         }
-        .warning-text.visible { display: block; }
+        .warning-toast.visible { display: block; }
 
         @media print {
             .page-second {
@@ -315,14 +318,15 @@
         </div>
     </div>
 
-    <!-- Предупреждение -->
-    <div id="warningText" class="warning-text">*Обязательные поля не заполнены полностью, дополните информацию.</div>
+    <!-- Всплывающее предупреждение (показывается на 3 секунды) -->
+    <div id="warningToast" class="warning-toast">*Обязательные поля не заполнены полностью, дополните информацию.</div>
 
-    <!-- Новый текст-инструкция -->
+    <!-- Инструкция -->
     <div class="info-text">
         <strong>Два способа подачи заявки:</strong><br>
-        После заполнения всех данных нажмите кнопку «Печатать файл» — система переведёт вас на страницу печати мобильного устройства. Выберите принтер для распечатки документа. Также можно нажать кнопку «Поделиться», чтобы скачать файл PDF в папку приложений телефона.<br><br>
-        Нажмите кнопку «Онлайн-подписание», подпишитесь на электронной доске для рукописного ввода, затем нажмите кнопку «Подтвердить». После этого будет создано изображение формата PNG. Длительно нажмите пустое место на изображении, чтобы выбрать пункт «Сохранить в галерею». Также доступна кнопка «Поделиться»: при её нажатии изображение откроется в приложении электронной почты для быстрой отправки по почте.
+        1. Заполните все данные и нажмите «Печатать файл», чтобы распечатать документ с телефона. Кнопка «Поделиться» также позволяет скачать PDF в папку приложений.<br><br>
+        2. Нажмите «Онлайн-подписание», подпишитесь и подтвердите — появится PNG. Кнопка «Поделиться» позволяет отправить картинку по почте или сохранить в галерею.<br><br>
+        <span style="color:#888; font-size:11px;">*Если кнопки «Печатать файл» и «Онлайн-подписание» неактивны, проверьте полностью ли введены 11-значный номер телефона и 8-цифровая дата регистрации.</span>
     </div>
 
     <div class="action-row">
@@ -343,7 +347,7 @@
     <div class="footnote">* Все поля синхронизируются. Подпись вставляется после подтверждения.</div>
 </div>
 
-<!-- Вторая страница (только кнопка "Поделиться" и "Печать") -->
+<!-- Вторая страница (только "Поделиться" и "Печать") -->
 <div class="page-second" id="pageSecond">
     <div class="image-wrapper" id="imageWrapper">
         <div id="imageContainer" style="width:100%;"></div>
@@ -397,12 +401,13 @@
         const backToFormBtn = document.getElementById('backToFormBtn');
         const shareImageBtn = document.getElementById('shareImageBtn');
         const printImageBtn = document.getElementById('printImageBtn');
-        const warningText = document.getElementById('warningText');
+        const warningToast = document.getElementById('warningToast');
 
         let isDrawing = false, lastX=0, lastY=0;
         let signatureData = null;
         let signatureConfirmed = false;
         let currentImageData = null;
+        let warningTimeout = null;
 
         // ----- helpers -----
         function capitalizeFirst(str) {
@@ -489,6 +494,19 @@
             return `${parts[2]}年${parts[1]}月${parts[0]}日`;
         }
 
+        // Показать предупреждение на 3 секунды
+        function showWarning() {
+            if (warningTimeout) {
+                clearTimeout(warningTimeout);
+                warningTimeout = null;
+            }
+            warningToast.classList.add('visible');
+            warningTimeout = setTimeout(function() {
+                warningToast.classList.remove('visible');
+                warningTimeout = null;
+            }, 3000);
+        }
+
         // ----- обновление -----
         function updateAll() {
             const fio = getFIO();
@@ -536,13 +554,6 @@
 
             printDocBtn.disabled = !allReq;
             onlineSignBtn.disabled = !allReq;
-
-            // Управление предупреждением
-            if (!allReq) {
-                warningText.classList.add('visible');
-            } else {
-                warningText.classList.remove('visible');
-            }
         }
 
         // ----- события -----
@@ -658,6 +669,10 @@
         });
 
         onlineSignBtn.addEventListener('click', function() {
+            if (onlineSignBtn.disabled) {
+                showWarning();
+                return;
+            }
             signatureArea.classList.toggle('visible');
             if (signatureArea.classList.contains('visible')) {
                 setTimeout(resizeCanvas, 100);
@@ -666,6 +681,11 @@
 
         // ----- Печатать файл (открыть диалог печати) -----
         printDocBtn.addEventListener('click', function() {
+            if (printDocBtn.disabled) {
+                showWarning();
+                return;
+            }
+
             const fio = getFIO();
             const shortFio = getShortFIO();
             const id = inputID.value.trim() || '(ID партнёра)';
@@ -742,7 +762,6 @@
                 printWindow.document.write(docContent);
                 printWindow.document.close();
                 printWindow.focus();
-                // Устанавливаем заголовок для имени файла при печати/сохранении PDF
                 printWindow.document.title = `Обращение от ${todayFile}`;
                 printWindow.print();
             } else {
@@ -863,7 +882,6 @@
                 alert('Нет изображения для отправки.');
                 return;
             }
-            // Создаём файл и используем navigator.share если доступен
             fetch(currentImageData)
                 .then(res => res.blob())
                 .then(blob => {
@@ -877,13 +895,11 @@
                             return;
                         }
                     }
-                    // fallback: открыть почту
                     const fio = getFIO();
                     const today = getToday();
                     const subject = `Обращение от ${fio} от ${today}`;
                     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Смотрите вложение (скриншот заявления).')}`;
                     window.location.href = mailtoUrl;
-                    // Скачиваем файл
                     const link = document.createElement('a');
                     link.href = currentImageData;
                     link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
