@@ -220,6 +220,18 @@
         }
         .info-text strong { color: #0b2b4a; }
 
+        .warning-text {
+            font-size: 12px;
+            color: #c62828;
+            background: #ffebee;
+            padding: 6px 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            text-align: center;
+            display: none;
+        }
+        .warning-text.visible { display: block; }
+
         @media print {
             .page-second {
                 max-width: 100%;
@@ -303,10 +315,14 @@
         </div>
     </div>
 
+    <!-- Предупреждение -->
+    <div id="warningText" class="warning-text">*Обязательные поля не заполнены полностью, дополните информацию.</div>
+
+    <!-- Новый текст-инструкция -->
     <div class="info-text">
-        <strong>Осуществить подачу заявки можно двумя способами:</strong><br>
-        1. Заполните все необходимые данные, нажмите кнопку «Печатать файл» — система сгенерирует документ Word. Распечатайте его, подпишите, сделайте снимок заполненного документа и отправьте скриншот на электронную почту 243669280@qq.com;<br>
-        2. Нажмите кнопку «Онлайн-подписание», подпишитесь на электронной доске для рукописного ввода, затем нажмите кнопку «Подтвердить». После этого будет создано изображение формата JPG. Вы можете сохранить его в галерею телефона либо нажать кнопку «Отправить на почту» для мгновенной отправки файла на адрес 243669280@qq.com.
+        <strong>Два способа подачи заявки:</strong><br>
+        После заполнения всех данных нажмите кнопку «Печатать файл» — система переведёт вас на страницу печати мобильного устройства. Выберите принтер для распечатки документа. Также можно нажать кнопку «Поделиться», чтобы скачать файл PDF в папку приложений телефона.<br><br>
+        Нажмите кнопку «Онлайн-подписание», подпишитесь на электронной доске для рукописного ввода, затем нажмите кнопку «Подтвердить». После этого будет создано изображение формата PNG. Длительно нажмите пустое место на изображении, чтобы выбрать пункт «Сохранить в галерею». Также доступна кнопка «Поделиться»: при её нажатии изображение откроется в приложении электронной почты для быстрой отправки по почте.
     </div>
 
     <div class="action-row">
@@ -327,14 +343,14 @@
     <div class="footnote">* Все поля синхронизируются. Подпись вставляется после подтверждения.</div>
 </div>
 
+<!-- Вторая страница (только кнопка "Поделиться" и "Печать") -->
 <div class="page-second" id="pageSecond">
     <div class="image-wrapper" id="imageWrapper">
         <div id="imageContainer" style="width:100%;"></div>
     </div>
-    <div class="save-hint">📌 Нажмите и удерживайте изображение, чтобы сохранить в галерею</div>
+    <div class="save-hint">📌 Длительно нажмите на изображение, чтобы сохранить в галерею</div>
     <div class="image-actions">
-        <button class="btn btn-success" id="saveImageBtn">💾 Сохранить в галерею</button>
-        <button class="btn btn-primary" id="sendEmailBtn">📧 Отправить на почту</button>
+        <button class="btn btn-primary" id="shareImageBtn">📤 Поделиться</button>
         <button class="btn btn-outline" id="printImageBtn">🖨 Печать</button>
     </div>
     <button class="btn btn-outline back-btn" id="backToFormBtn">← Вернуться к форме</button>
@@ -379,9 +395,9 @@
         const pageSecond = document.getElementById('pageSecond');
         const pageFirst = document.getElementById('pageFirst');
         const backToFormBtn = document.getElementById('backToFormBtn');
-        const saveImageBtn = document.getElementById('saveImageBtn');
-        const sendEmailBtn = document.getElementById('sendEmailBtn');
+        const shareImageBtn = document.getElementById('shareImageBtn');
         const printImageBtn = document.getElementById('printImageBtn');
+        const warningText = document.getElementById('warningText');
 
         let isDrawing = false, lastX=0, lastY=0;
         let signatureData = null;
@@ -458,6 +474,14 @@
             return `${dd}.${mm}.${yyyy} г.`;
         }
 
+        function getTodayFileName() {
+            const d = new Date();
+            let dd = String(d.getDate()).padStart(2,'0');
+            let mm = String(d.getMonth()+1).padStart(2,'0');
+            let yyyy = d.getFullYear();
+            return `${dd}.${mm}.${yyyy}`;
+        }
+
         function getChineseDate(dateStr) {
             if (!dateStr || dateStr === '(дата регистрации)') return '(дата регистрации)';
             let parts = dateStr.split('.');
@@ -512,6 +536,13 @@
 
             printDocBtn.disabled = !allReq;
             onlineSignBtn.disabled = !allReq;
+
+            // Управление предупреждением
+            if (!allReq) {
+                warningText.classList.add('visible');
+            } else {
+                warningText.classList.remove('visible');
+            }
         }
 
         // ----- события -----
@@ -649,6 +680,7 @@
             let sPhoneDisplay = (sPhoneRaw.length === 11) ? formatPhone(sPhoneRaw) : '(Номер телефона спонсора)';
             if (sPhoneRaw.length === 11) sPhoneDisplay = 'телефон ' + sPhoneDisplay;
             const today = getToday();
+            const todayFile = getTodayFileName();
 
             const chineseDateReg = getChineseDate(dateRegDisplay);
             const chineseToday = getChineseDate(today.replace(' г.', ''));
@@ -657,13 +689,12 @@
 
             const bold = (text) => `<strong>${text}</strong>`;
 
-            // Документ БЕЗ подписи
             const docContent = `
                 <!DOCTYPE html>
                 <html>
                 <head>
                 <meta charset="UTF-8">
-                <title>Обращение</title>
+                <title>Обращение от ${todayFile}</title>
                 <style>
                     body { font-family: 'Times New Roman', serif; font-size: 10pt; line-height: 1.3; margin: 1.5cm; }
                     .chinese { font-family: 'Times New Roman', serif; font-size: 10pt; }
@@ -706,12 +737,13 @@
                 </html>
             `;
 
-            // Создаём временное окно для печати
             const printWindow = window.open('', '_blank', 'width=800,height=600');
             if (printWindow) {
                 printWindow.document.write(docContent);
                 printWindow.document.close();
                 printWindow.focus();
+                // Устанавливаем заголовок для имени файла при печати/сохранении PDF
+                printWindow.document.title = `Обращение от ${todayFile}`;
                 printWindow.print();
             } else {
                 alert('Пожалуйста, разрешите всплывающие окна для печати.');
@@ -739,6 +771,7 @@
             let sPhoneDisplay = (sPhoneRaw.length === 11) ? formatPhone(sPhoneRaw) : '(Номер телефона спонсора)';
             if (sPhoneRaw.length === 11) sPhoneDisplay = 'телефон ' + sPhoneDisplay;
             const today = getToday();
+            const todayFile = getTodayFileName();
 
             const chineseDateReg = getChineseDate(dateRegDisplay);
             const chineseToday = getChineseDate(today.replace(' г.', ''));
@@ -824,39 +857,46 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        saveImageBtn.addEventListener('click', function() {
-            if (!currentImageData) {
-                alert('Нет изображения для сохранения.');
-                return;
-            }
-            const link = document.createElement('a');
-            link.href = currentImageData;
-            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            alert('Изображение сохранено в папку "Загрузки".');
-        });
-
-        sendEmailBtn.addEventListener('click', function() {
+        // Поделиться (открывает системное меню "Поделиться")
+        shareImageBtn.addEventListener('click', function() {
             if (!currentImageData) {
                 alert('Нет изображения для отправки.');
                 return;
             }
-            const fio = getFIO();
-            const today = getToday();
-            const subject = `Обращение от ${fio} от ${today}`;
-            const mailtoUrl = `mailto:243669280@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Смотрите вложение (скриншот заявления).')}`;
-            window.location.href = mailtoUrl;
-            const link = document.createElement('a');
-            link.href = currentImageData;
-            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            alert('Открыто приложение почты. Пожалуйста, прикрепите загруженный файл к письму.');
+            // Создаём файл и используем navigator.share если доступен
+            fetch(currentImageData)
+                .then(res => res.blob())
+                .then(blob => {
+                    if (navigator.share) {
+                        const file = new File([blob], 'Zayavlenie_FUTURE_BIOTECH.png', { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            navigator.share({
+                                title: 'Заявление',
+                                files: [file]
+                            }).catch(() => {});
+                            return;
+                        }
+                    }
+                    // fallback: открыть почту
+                    const fio = getFIO();
+                    const today = getToday();
+                    const subject = `Обращение от ${fio} от ${today}`;
+                    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Смотрите вложение (скриншот заявления).')}`;
+                    window.location.href = mailtoUrl;
+                    // Скачиваем файл
+                    const link = document.createElement('a');
+                    link.href = currentImageData;
+                    link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                })
+                .catch(() => {
+                    alert('Не удалось открыть меню "Поделиться".');
+                });
         });
 
+        // Печать изображения
         printImageBtn.addEventListener('click', function() {
             if (!currentImageData) return;
             const win = window.open('', '_blank');
