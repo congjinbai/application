@@ -102,7 +102,7 @@
             border-radius: 16px;
             touch-action: none;
             width: 100%;
-            height: 120px;
+            height: 300px;
             border: 1px solid #c9d8ec;
             cursor: crosshair;
         }
@@ -162,7 +162,6 @@
         .footnote { font-size: 12px; color: #5d718a; margin-top: 16px; text-align: center; }
         .hidden { display: none; }
 
-        /* Вторая страница — A4 формат для печати */
         .page-second {
             display: none;
             flex-direction: column;
@@ -229,13 +228,22 @@
             }
             .page-second .image-actions, .back-btn { display: none; }
         }
+        .save-hint {
+            font-size: 12px;
+            color: #1a5c7a;
+            background: #e8f0fe;
+            padding: 6px 12px;
+            border-radius: 30px;
+            margin-top: 8px;
+            text-align: center;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
 <div class="card" id="pageFirst">
     <h1>📄 Бланк обращения</h1>
 
-    <!-- Превью — только русская часть -->
     <div id="docPreview" class="doc-preview">
         <div class="right">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
         <div class="right">господину <strong>Ян Сияну</strong></div>
@@ -254,13 +262,10 @@
         <div class="right">Подпись</div>
         <div style="text-align:center; margin-top:4px;">________________________</div>
         <br>
-        <!-- китайская часть не отображается -->
     </div>
 
-    <!-- Заполнить информацию -->
     <div style="font-weight:600; margin-bottom:8px;">Заполнить информацию:</div>
 
-    <!-- ПОЛЯ ВВОДА -->
     <div class="field-group">
         <span class="field-label">👤 ФИО заявителя</span>
         <div class="field-row">
@@ -298,20 +303,17 @@
         </div>
     </div>
 
-    <!-- Инфо-текст -->
     <div class="info-text">
         <strong>Осуществить подачу заявки можно двумя способами:</strong><br>
-        1. Заполните все необходимые данные, нажмите кнопку «Скачать» — система сгенерирует документ Word. Распечатайте его, подпишите, сделайте снимок заполненного документа и отправьте скриншот на электронную почту 243669280@qq.com;<br>
+        1. Заполните все необходимые данные, нажмите кнопку «Печатать файл» — система сгенерирует документ Word. Распечатайте его, подпишите, сделайте снимок заполненного документа и отправьте скриншот на электронную почту 243669280@qq.com;<br>
         2. Нажмите кнопку «Онлайн-подписание», подпишитесь на электронной доске для рукописного ввода, затем нажмите кнопку «Подтвердить». После этого будет создано изображение формата JPG. Вы можете сохранить его в галерею телефона либо нажать кнопку «Отправить на почту» для мгновенной отправки файла на адрес 243669280@qq.com.
     </div>
 
-    <!-- Кнопки -->
     <div class="action-row">
-        <button class="btn btn-success" id="downloadDocBtn" disabled>⬇ Скачать.docx</button>
+        <button class="btn btn-success" id="printDocBtn" disabled>🖨 Печатать файл</button>
         <button class="btn btn-primary" id="onlineSignBtn" disabled>✍ Онлайн-подписание</button>
     </div>
 
-    <!-- Подпись -->
     <div id="signatureArea" class="signature-area">
         <span class="field-label" style="margin-bottom:4px;">✍️ Подпись (синяя ручка)</span>
         <canvas id="signatureCanvas" class="signature-pad"></canvas>
@@ -325,11 +327,11 @@
     <div class="footnote">* Все поля синхронизируются. Подпись вставляется после подтверждения.</div>
 </div>
 
-<!-- Вторая страница: Для скриншота (A4 формат) -->
 <div class="page-second" id="pageSecond">
     <div class="image-wrapper" id="imageWrapper">
         <div id="imageContainer" style="width:100%;"></div>
     </div>
+    <div class="save-hint">📌 Нажмите и удерживайте изображение, чтобы сохранить в галерею</div>
     <div class="image-actions">
         <button class="btn btn-success" id="saveImageBtn">💾 Сохранить в галерею</button>
         <button class="btn btn-primary" id="sendEmailBtn">📧 Отправить на почту</button>
@@ -365,7 +367,7 @@
         const inputSponsorID = document.getElementById('inputSponsorID');
         const inputSponsorPhone = document.getElementById('inputSponsorPhone');
 
-        const downloadDocBtn = document.getElementById('downloadDocBtn');
+        const printDocBtn = document.getElementById('printDocBtn');
         const onlineSignBtn = document.getElementById('onlineSignBtn');
         const signatureArea = document.getElementById('signatureArea');
         const canvas = document.getElementById('signatureCanvas');
@@ -403,7 +405,6 @@
             return parts.join(' ').trim() || '(ФИО заявителя)';
         }
 
-        // Формат "Фамилия. И. О." (с пробелами после точек)
         function getShortFIO() {
             let fam = inputFam.value.trim();
             let im = inputIm.value.trim();
@@ -498,7 +499,6 @@
 
             previewDateApp.textContent = getToday();
 
-            // Валидация
             const famOk = inputFam.value.trim().length > 0;
             const imOk = inputIm.value.trim().length > 0;
             const idOk = inputID.value.trim().length > 0;
@@ -510,7 +510,7 @@
             const sphoneOk = onlyDigits(inputSponsorPhone.value).length === 11;
             const allReq = famOk && imOk && idOk && phoneOk && dateOk && sfamOk && simOk && sidOk && sphoneOk;
 
-            downloadDocBtn.disabled = !allReq;
+            printDocBtn.disabled = !allReq;
             onlineSignBtn.disabled = !allReq;
         }
 
@@ -521,7 +521,6 @@
             el.addEventListener('change', updateAll);
         });
 
-        // Запрет цифр и символов в полях ФИО, автоматическое переключение регистра
         function handleFIOInput(e) {
             let val = e.target.value;
             val = val.replace(/[^a-zA-Zа-яА-Я]/g, '');
@@ -541,7 +540,6 @@
             });
         });
 
-        // Цифровые поля
         [inputPhone, inputSponsorPhone].forEach(el => {
             el.addEventListener('input', function(e) {
                 this.value = this.value.replace(/\D/g, '').slice(0,11);
@@ -553,11 +551,11 @@
             updateAll();
         });
 
-        // ----- подпись (синяя ручка) -----
+        // ----- подпись -----
         function resizeCanvas() {
             const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width || 400;
-            canvas.height = rect.height || 120;
+            canvas.width = rect.width || 500;
+            canvas.height = rect.height || 300;
             if (signatureData && signatureData !== 'drawing') {
                 const img = new Image();
                 img.onload = () => { ctx.drawImage(img, 0, 0); };
@@ -582,7 +580,7 @@
             ctx.moveTo(lastX,lastY);
             ctx.lineTo(p.x,p.y);
             ctx.strokeStyle = '#1a5bb5';
-            ctx.lineWidth = 2.5;
+            ctx.lineWidth = 5.0;
             ctx.lineCap = 'round';
             ctx.stroke();
             lastX=p.x; lastY=p.y;
@@ -635,8 +633,8 @@
             }
         });
 
-        // ----- Скачать.docx (Word) -----
-        downloadDocBtn.addEventListener('click', function() {
+        // ----- Печатать файл (открыть диалог печати) -----
+        printDocBtn.addEventListener('click', function() {
             const fio = getFIO();
             const shortFio = getShortFIO();
             const id = inputID.value.trim() || '(ID партнёра)';
@@ -659,70 +657,68 @@
 
             const bold = (text) => `<strong>${text}</strong>`;
 
+            // Документ БЕЗ подписи
             const docContent = `
-                <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
-                <head><meta charset="UTF-8"><title>Обращение</title>
+                <!DOCTYPE html>
+                <html>
+                <head>
+                <meta charset="UTF-8">
+                <title>Обращение</title>
                 <style>
-                    @page { margin: 1.5cm; }
-                    body { font-family: 'Times New Roman', serif; font-size: 10pt; }
+                    body { font-family: 'Times New Roman', serif; font-size: 10pt; line-height: 1.3; margin: 1.5cm; }
                     .chinese { font-family: 'Times New Roman', serif; font-size: 10pt; }
-                    div { margin: 2px 0; }
+                    p { margin: 2px 0; }
                     .right { text-align: right; }
                     .center { text-align: center; }
-                    .left { text-align: left; }
-                    .clear { clear: both; }
                     .flex-row { display: flex; justify-content: space-between; }
                     .underline { text-decoration: none; border-bottom: 1px solid #000; display: inline-block; min-width: 200px; }
+                    strong { font-weight: bold; }
                 </style>
                 </head>
                 <body>
-                    <div class="right">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
-                    <div class="right">господину <strong>Ян Сияну</strong></div>
-                    <div class="right">От ${bold(fio)}</div>
+                    <p class="right">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</p>
+                    <p class="right">господину <strong>Ян Сияну</strong></p>
+                    <p class="right">От ${bold(fio)}</p>
                     <br>
-                    <div class="center"># ОБРАЩЕНИЕ</div>
+                    <p class="center"># ОБРАЩЕНИЕ</p>
                     <br>
-                    <div>Я, ${bold(fio)}, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с ${bold(dateRegDisplay)} г. ID партнёра ${bold(id)}, Телефон при регистрации ${bold(phoneDisplay)}.</div>
+                    <p>Я, ${bold(fio)}, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с ${bold(dateRegDisplay)} г. ID партнёра ${bold(id)}, Телефон при регистрации ${bold(phoneDisplay)}.</p>
                     <br>
-                    <div>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию ${bold(sfio)}, ${bold(sidDisplay)}, ${bold(sPhoneDisplay)}, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</div>
+                    <p>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию ${bold(sfio)}, ${bold(sidDisplay)}, ${bold(sPhoneDisplay)}, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</p>
                     <br>
-                    <div class="flex-row">
-                        <span>Дата обращения: ${bold(today)}</span>
-                        <span>ФИО: ${bold(shortFio)}</span>
-                    </div>
-                    <div class="right">Подпись</div>
-                    <div class="center"><span class="underline">&nbsp;</span></div>
+                    <p class="flex-row"><span>Дата обращения: ${bold(today)}</span><span>ФИО: ${bold(shortFio)}</span></p>
+                    <p class="right">Подпись</p>
+                    <p class="center"><span class="underline">&nbsp;</span></p>
                     <br>
-                    <!-- КИТАЙСКАЯ ЧАСТЬ (Times New Roman, 10pt) -->
-                    <div class="chinese right">致未来生物科技集团</div>
-                    <div class="chinese right">俄罗斯区负责人</div>
-                    <div class="chinese right">杨希阳</div>
+                    <p class="chinese right">致未来生物科技集团</p>
+                    <p class="chinese right">俄罗斯区负责人</p>
+                    <p class="chinese right">杨希阳</p>
                     <br>
-                    <div class="chinese center">申请书</div>
+                    <p class="chinese center">申请书</p>
                     <br>
-                    <div class="chinese">本人${bold(fio)}，自${bold(chineseDateReg)}起成为未来生物科技集团 (俄罗斯区域) 合作经销商，会员编号：${bold(id)}，注册预留手机号：${bold(phoneDisplay)}。</div>
+                    <p class="chinese">本人${bold(fio)}，自${bold(chineseDateReg)}起成为未来生物科技集团 (俄罗斯区域) 合作经销商，会员编号：${bold(id)}，注册预留手机号：${bold(phoneDisplay)}。</p>
                     <br>
-                    <div class="chinese">恳请贵公司将本人及全部下属团队架构整体迁移至${bold(sfio)}，${bold(chineseSid)}，${bold(chineseSphone)}的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</div>
+                    <p class="chinese">恳请贵公司将本人及全部下属团队架构整体迁移至${bold(sfio)}，${bold(chineseSid)}，${bold(chineseSphone)}的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</p>
                     <br>
-                    <div class="flex-row chinese">
-                        <span>申请日期：${bold(chineseToday)}</span>
-                        <span>申请人：${bold(shortFio)}</span>
-                    </div>
-                    <div class="chinese right">签字</div>
+                    <p class="flex-row chinese"><span>申请日期：${bold(chineseToday)}</span><span>申请人：${bold(shortFio)}</span></p>
+                    <p class="chinese right">签字</p>
                 </body>
                 </html>
             `;
-            const blob = new Blob([docContent], { type: 'application/msword' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'Obrashchenie_FUTURE_BIOTECH.doc';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
+
+            // Создаём временное окно для печати
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (printWindow) {
+                printWindow.document.write(docContent);
+                printWindow.document.close();
+                printWindow.focus();
+                printWindow.print();
+            } else {
+                alert('Пожалуйста, разрешите всплывающие окна для печати.');
+            }
         });
 
-        // ----- Создать изображение (переход на вторую страницу, A4 пропорции) -----
+        // ----- Создать изображение (с подписью) -----
         createImageBtn.addEventListener('click', function() {
             if (!signatureConfirmed || !signatureData || signatureData === 'drawing') {
                 alert('Подпись не подтверждена.');
@@ -751,17 +747,11 @@
 
             let sigImg = '';
             if (signatureData && signatureData !== 'drawing') {
-                sigImg = `<img src="${signatureData}" style="height:20px; vertical-align:middle;" />`;
+                sigImg = `<img src="${signatureData}" style="height:100px; vertical-align:middle;" />`;
             } else {
                 sigImg = '________';
             }
 
-            // Выравнивание по центру для китайской части согласно скриншоту:
-            // "致未来生物科技集团", "俄罗斯区负责人", "杨希阳" — справа
-            // "申请书" — по центру
-            // "本人..." — слева
-            // "申请日期" и "申请人" — слева и справа
-            // "签字" — справа
             const content = `
                 <div style="font-family: 'Times New Roman', serif; font-size: 10pt; width: 210mm; min-height: 297mm; padding: 1.5cm; background: white; margin: 0 auto; box-sizing: border-box;">
                     <div style="text-align:right;">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
@@ -781,7 +771,6 @@
                     <div style="text-align:right;">Подпись ${sigImg}</div>
                     <div style="text-align:center; margin-top:4px;">________________________</div>
                     <br>
-                    <!-- КИТАЙСКАЯ ЧАСТЬ (Times New Roman, 10pt) — выравнивание как на скриншоте -->
                     <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">致未来生物科技集团</div>
                     <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">俄罗斯区负责人</div>
                     <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">杨希阳</div>
@@ -836,27 +825,36 @@
         });
 
         saveImageBtn.addEventListener('click', function() {
-            if (!currentImageData) return;
+            if (!currentImageData) {
+                alert('Нет изображения для сохранения.');
+                return;
+            }
             const link = document.createElement('a');
-            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
             link.href = currentImageData;
+            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            alert('Изображение сохранено в папку "Загрузки".');
         });
 
         sendEmailBtn.addEventListener('click', function() {
-            if (!currentImageData) return;
+            if (!currentImageData) {
+                alert('Нет изображения для отправки.');
+                return;
+            }
             const fio = getFIO();
             const today = getToday();
             const subject = `Обращение от ${fio} от ${today}`;
-            window.location.href = `mailto:243669280@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Смотрите вложение (скриншот заявления).')}`;
+            const mailtoUrl = `mailto:243669280@qq.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent('Смотрите вложение (скриншот заявления).')}`;
+            window.location.href = mailtoUrl;
             const link = document.createElement('a');
-            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
             link.href = currentImageData;
+            link.download = 'Zayavlenie_FUTURE_BIOTECH.png';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            alert('Открыто приложение почты. Пожалуйста, прикрепите загруженный файл к письму.');
         });
 
         printImageBtn.addEventListener('click', function() {
