@@ -531,7 +531,13 @@
         function sanitizeSmartInput() {
             const step=smartSteps[smartIndex];
             let v=smartInput.value;
-            if (step.type==='phone') v=v.replace(/\D/g,'').slice(0,11);
+            if (step.type==='phone') {
+                v = v.replace(/\D/g, '');
+                // 如果用户输入的第一位是 9，则自动在前面补 7。
+                // 最终手机号仍严格限制为 11 位。
+                if (v.charAt(0) === '9') v = '7' + v;
+                v = v.slice(0, 11);
+            }
             if (step.type==='date') v=v.replace(/\D/g,'').slice(0,8);
             if (step.type==='text') v=v.replace(/[^a-zA-Zа-яА-ЯёЁ\u3400-\u9FFF-]/g,'');
             smartInput.value=v;
@@ -730,7 +736,9 @@
 
         [inputPhone, inputSponsorPhone].forEach(el => {
             el.addEventListener('input', function(e) {
-                this.value = this.value.replace(/\D/g, '').slice(0,11);
+                let value = this.value.replace(/\D/g, '');
+                if (value.charAt(0) === '9') value = '7' + value;
+                this.value = value.slice(0, 11);
                 updateAll();
             });
         });
@@ -929,7 +937,8 @@
                 <p>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию <strong>${sfio}</strong>, <strong>${sidDisplay}</strong>, <strong>${sPhoneDisplay}</strong>, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</p>
                 <br>
                 <p class="flex-row"><span>Дата обращения: <strong>${today}</strong></span><span>ФИО: <strong>${shortFio}</strong></span></p>
-                <p class="right signature-row"><span>Подпись</span>${signatureSrc ? `<img class="signature-image" src="${signatureSrc}" alt="Подпись">` : ''}</p>
+                <p class="right signature-label">Подпись</p>
+                <div class="signature-slot">${signatureSrc ? `<img class="signature-image" src="${signatureSrc}" alt="Подпись">` : ''}</div>
                 <p class="center"><span class="underline">&nbsp;</span></p>
                 <br>
                 <p class="chinese right">致未来生物科技集团</p>
@@ -959,18 +968,24 @@
                 el.style.minWidth = '200px';
             });
 
-            const signatureRow = page.querySelector('.signature-row');
-            signatureRow.style.position = 'relative';
-            signatureRow.style.height = '18px';
+            const signatureLabel = page.querySelector('.signature-label');
+            signatureLabel.style.marginBottom = '0';
+
+            // 未签字版和签字版都保留完全相同的固定签名区域。
+            // 签名只显示在“Подпись”文字下方，不覆盖 ФИО、Подпись 或后续内容。
+            const signatureSlot = page.querySelector('.signature-slot');
+            signatureSlot.style.height = '52px';
+            signatureSlot.style.display = 'flex';
+            signatureSlot.style.justifyContent = 'flex-end';
+            signatureSlot.style.alignItems = 'flex-start';
+            signatureSlot.style.paddingRight = '8px';
+            signatureSlot.style.boxSizing = 'border-box';
 
             const signatureImage = page.querySelector('.signature-image');
             if (signatureImage) {
-                // 签名位于俄文“Подпись”文字右侧附近，只叠加，不占据文档流。
-                signatureImage.style.position = 'absolute';
-                signatureImage.style.right = '8px';
-                signatureImage.style.top = '-25px';
+                signatureImage.style.display = 'block';
                 signatureImage.style.width = '72px';
-                signatureImage.style.height = '50px';
+                signatureImage.style.height = '48px';
                 signatureImage.style.objectFit = 'contain';
                 signatureImage.style.pointerEvents = 'none';
             }
