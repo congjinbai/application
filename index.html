@@ -1054,69 +1054,115 @@
                 sigImg = '________';
             }
 
-            const content = `
-                <div style="font-family: 'Times New Roman', serif; font-size: 10pt; width: 210mm; min-height: 297mm; padding: 1.5cm; background: white; margin: 0 auto; box-sizing: border-box;">
-                    <div style="text-align:right;">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</div>
-                    <div style="text-align:right;">господину <strong>Ян Сияну</strong></div>
-                    <div style="text-align:right;">От <strong>${fio}</strong></div>
-                    <br>
-                    <div style="text-align:center;"># ОБРАЩЕНИЕ</div>
-                    <br>
-                    <div>Я, <strong>${fio}</strong>, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с <strong>${dateRegDisplay}</strong> г. ID партнёра <strong>${id}</strong>, Телефон при регистрации <strong>${phoneDisplay}</strong>.</div>
-                    <br>
-                    <div>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию <strong>${sfio}</strong>, <strong>${sidDisplay}</strong>, <strong>${sPhoneDisplay}</strong>, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</div>
-                    <br>
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>Дата обращения: <strong>${today}</strong></span>
-                        <span>ФИО: <strong>${shortFio}</strong></span>
-                    </div>
-                    <div style="text-align:right;">Подпись ${sigImg}</div>
-                    <div style="text-align:center; margin-top:4px;">________________________</div>
-                    <br>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">致未来生物科技集团</div>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">俄罗斯区负责人</div>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">杨希阳</div>
-                    <br>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:center;">申请书</div>
-                    <br>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:left;">本人<strong>${fio}</strong>，自<strong>${chineseDateReg}</strong>起成为未来生物科技集团 (俄罗斯区域) 合作经销商，会员编号：<strong>${id}</strong>，注册预留手机号：<strong>${phoneDisplay}</strong>。</div>
-                    <br>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:left;">恳请贵公司将本人及全部下属团队架构整体迁移至<strong>${sfio}</strong>，<strong>${chineseSid}</strong>，<strong>${chineseSphone}</strong>的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</div>
-                    <br>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; display:flex; justify-content:space-between;">
-                        <span>申请日期：<strong>${chineseToday}</strong></span>
-                        <span>申请人：<strong>${shortFio}</strong></span>
-                    </div>
-                    <div style="font-family: 'Times New Roman', serif; font-size: 10pt; text-align:right;">签字</div>
-                </div>
+            // 签字版必须与未签字打印版使用完全相同的 A4 像素尺寸、字体、字号、行距和段落结构。
+            // 签名只覆盖在原来的签字横线上，不参与文档流，因此不会把正文放大或撑高页面。
+            const signedPage = document.createElement('div');
+            signedPage.style.cssText = [
+                'position:fixed',
+                'left:-10000px',
+                'top:0',
+                'width:794px',
+                'height:1123px',
+                'padding:57px',
+                'box-sizing:border-box',
+                'overflow:hidden',
+                'background:#fff',
+                "font-family:'Times New Roman','Noto Serif CJK SC','Songti SC',serif",
+                'font-size:13.333px',
+                'line-height:1.3',
+                'color:#000'
+            ].join(';');
+
+            signedPage.innerHTML = `
+                <p class="right">Руководителю Корпорации FUTUYRE BIOTECH (РОССИЯ)</p>
+                <p class="right">господину <strong>Ян Сияну</strong></p>
+                <p class="right">От <strong>${fio}</strong></p>
+                <br>
+                <p class="center"># ОБРАЩЕНИЕ</p>
+                <br>
+                <p>Я, <strong>${fio}</strong>, партнер Корпорации FUTURE BIOTECH (РОССИЯ) с <strong>${dateRegDisplay}</strong> г. ID партнёра <strong>${id}</strong>, Телефон при регистрации <strong>${phoneDisplay}</strong>.</p>
+                <br>
+                <p>Прошу ВАС перевести меня вместе со всей моей структурой, с сохранением всех статусов и объемов, в первую линию <strong>${sfio}</strong>, <strong>${sidDisplay}</strong>, <strong>${sPhoneDisplay}</strong>, списки и «фото-скрин» с спонсор объемами моей команды прилагаю.</p>
+                <br>
+                <p class="flex-row"><span>Дата обращения: <strong>${today}</strong></span><span>ФИО: <strong>${shortFio}</strong></span></p>
+                <p class="right">Подпись</p>
+                <p class="center signature-line"><span class="underline">&nbsp;</span><img class="signature-image" src="${signatureData}" alt="Подпись"></p>
+                <br>
+                <p class="chinese right">致未来生物科技集团</p>
+                <p class="chinese right">俄罗斯区负责人</p>
+                <p class="chinese right">杨希阳</p>
+                <br>
+                <p class="chinese center">申请书</p>
+                <br>
+                <p class="chinese">本人<strong>${fio}</strong>，自<strong>${chineseDateReg}</strong>起成为未来生物科技集团 (俄罗斯区域) 合作经销商，会员编号：<strong>${id}</strong>，注册预留手机号：<strong>${phoneDisplay}</strong>。</p>
+                <br>
+                <p class="chinese">恳请贵公司将本人及全部下属团队架构整体迁移至<strong>${sfio}</strong>，<strong>${chineseSid}</strong>，<strong>${chineseSphone}</strong>的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</p>
+                <br>
+                <p class="flex-row chinese"><span>申请日期：<strong>${chineseToday}</strong></span><span>申请人：<strong>${shortFio}</strong></span></p>
+                <p class="chinese right">签字</p>
             `;
 
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = content;
-            wrapper.style.position = 'absolute';
-            wrapper.style.left = '-9999px';
-            wrapper.style.top = '0';
-            wrapper.style.width = '210mm';
-            document.body.appendChild(wrapper);
-
-            html2canvas(wrapper, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff',
-                width: 210 * 3.78,
-                height: 297 * 3.78,
-            }).then(canvasImg => {
-                document.body.removeChild(wrapper);
-                const imgData = canvasImg.toDataURL('image/png');
-                currentImageData = imgData;
-                pageSecond.classList.add('visible');
-                pageFirst.style.display = 'none';
-                imageContainer.innerHTML = `<img src="${imgData}" alt="Заявление" style="width:100%; height:auto; display:block;" />`;
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }).catch(() => {
-                document.body.removeChild(wrapper);
+            signedPage.querySelectorAll('p').forEach(p => { p.style.margin = '2px 0'; });
+            signedPage.querySelectorAll('.right').forEach(el => { el.style.textAlign = 'right'; });
+            signedPage.querySelectorAll('.center').forEach(el => { el.style.textAlign = 'center'; });
+            signedPage.querySelectorAll('.flex-row').forEach(el => {
+                el.style.display = 'flex';
+                el.style.justifyContent = 'space-between';
             });
+            signedPage.querySelectorAll('.underline').forEach(el => {
+                el.style.borderBottom = '1px solid #000';
+                el.style.display = 'inline-block';
+                el.style.minWidth = '200px';
+            });
+
+            const signatureLine = signedPage.querySelector('.signature-line');
+            signatureLine.style.position = 'relative';
+            signatureLine.style.height = '18px';
+
+            const signatureImage = signedPage.querySelector('.signature-image');
+            signatureImage.style.position = 'absolute';
+            signatureImage.style.left = '50%';
+            signatureImage.style.bottom = '-2px';
+            signatureImage.style.transform = 'translateX(-50%)';
+            signatureImage.style.width = '110px';
+            signatureImage.style.height = '45px';
+            signatureImage.style.objectFit = 'contain';
+            signatureImage.style.pointerEvents = 'none';
+
+            document.body.appendChild(signedPage);
+
+            const renderSignedPage = () => {
+                html2canvas(signedPage, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    backgroundColor: '#ffffff',
+                    width: 794,
+                    height: 1123,
+                    windowWidth: 794,
+                    windowHeight: 1123
+                }).then(canvasImg => {
+                    document.body.removeChild(signedPage);
+                    const imgData = canvasImg.toDataURL('image/png');
+                    currentImageData = imgData;
+                    pageSecond.classList.add('visible');
+                    pageFirst.style.display = 'none';
+                    imageContainer.innerHTML = `<img src="${imgData}" alt="Заявление" style="width:100%; height:auto; display:block;" />`;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }).catch((err) => {
+                    if (signedPage.parentNode) document.body.removeChild(signedPage);
+                    alert('图片生成失败，请重试。');
+                    console.error(err);
+                });
+            };
+
+            // 等签名图片真正解码完成后再截图，避免部分手机首次生成时签名缺失。
+            if (signatureImage.complete) {
+                renderSignedPage();
+            } else {
+                signatureImage.onload = renderSignedPage;
+                signatureImage.onerror = renderSignedPage;
+            }
         });
 
         // ----- Вторая страница: кнопки -----
