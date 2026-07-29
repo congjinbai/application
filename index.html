@@ -51,13 +51,14 @@
         .doc-preview .left { text-align: left; }
         .doc-preview .flex-line { display: flex; justify-content: space-between; align-items: baseline; }
 
+        /* 填写阶段只显示俄文预览，并让俄文占满整个预览区域。
+           中文仍保留在最终 A4 图片/PDF 模板中。 */
         .bilingual-preview {
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:18px;
-            align-items:start;
+            display:block;
         }
         .bilingual-preview section { min-width:0; }
+        .bilingual-preview section:first-child { width:100%; }
+        .bilingual-preview section:nth-child(2) { display:none; }
         .doc-title { font-size:18px; font-weight:700; text-align:center; margin-bottom:12px !important; }
         .signature-row-preview {
             display:flex;
@@ -318,7 +319,7 @@
         .submission-section.visible { display:block; }
         .completion-message { display:none; margin-top:14px; padding:12px 14px; border-radius:14px; background:#e5f3e8; color:#1e7e34; font-weight:600; text-align:center; }
         .completion-message.visible { display:block; }
-        @media (max-width: 480px) { .smart-input-row { flex-direction: column; } .smart-next-btn { width: 100%; } .bilingual-preview { grid-template-columns:1fr; } }
+        @media (max-width: 480px) { .smart-input-row { flex-direction: column; } .smart-next-btn { width: 100%; } }
     </style>
 </head>
 <body>
