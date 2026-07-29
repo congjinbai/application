@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -253,6 +255,38 @@
             text-align: center;
             width: 100%;
         }
+
+        .smart-form {
+            background: #f2f6fc;
+            border: 1px solid #d7e1ed;
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .smart-question { font-size: 17px; font-weight: 650; color: #0b2b4a; margin-bottom: 4px; }
+        .smart-hint { font-size: 12px; color: #5d718a; margin-bottom: 10px; min-height: 18px; }
+        .smart-input-row { display: flex; gap: 8px; }
+        .smart-input {
+            flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid #c5d4e8;
+            border-radius: 16px; font-size: 16px; outline: none; background: #fff;
+        }
+        .smart-input:focus { border-color: #1f5b9e; box-shadow: 0 0 0 3px rgba(31,91,158,0.12); }
+        .smart-next-btn { min-width: 88px; padding: 10px 16px; }
+        .smart-error { min-height: 18px; margin-top: 7px; font-size: 12px; color: #c62828; }
+        .smart-progress { display: flex; gap: 6px; overflow-x: auto; padding-top: 10px; scrollbar-width: thin; }
+        .progress-step {
+            flex: 0 0 auto; border: 1px solid #c5d4e8; background: #fff; color: #5d718a;
+            border-radius: 999px; padding: 6px 10px; font-size: 11px; cursor: pointer; transition: .15s;
+        }
+        .progress-step.active { background: #1a4e7a; color: #fff; border-color: #1a4e7a; }
+        .progress-step.done { background: #e5f3e8; color: #1e7e34; border-color: #a8d5b0; }
+        .progress-step.skipped { background: #f5f5f5; color: #8a8a8a; border-color: #ddd; }
+        .hidden-fields { display:none; }
+        .submission-section { display:none; }
+        .submission-section.visible { display:block; }
+        .completion-message { display:none; margin-top:14px; padding:12px 14px; border-radius:14px; background:#e5f3e8; color:#1e7e34; font-weight:600; text-align:center; }
+        .completion-message.visible { display:block; }
+        @media (max-width: 480px) { .smart-input-row { flex-direction: column; } .smart-next-btn { width: 100%; } }
     </style>
 </head>
 <body>
@@ -281,57 +315,47 @@
 
     <div style="font-weight:600; margin-bottom:8px;">Заполнить информацию:</div>
 
-    <div class="field-group">
-        <span class="field-label">👤 ФИО заявителя</span>
-        <div class="field-row">
-            <input id="inputFam" placeholder="Фамилия" class="small-input" style="flex:1;" inputmode="text" autocomplete="off">
-            <input id="inputIm" placeholder="Имя" class="small-input" style="flex:1;" inputmode="text" autocomplete="off">
-            <input id="inputOtch" placeholder="Отчество (опц.)" class="small-input" style="flex:1;" inputmode="text" autocomplete="off">
+    <div class="smart-form">
+        <div class="smart-question" id="smartQuestion">Фамилия заявителя</div>
+        <div class="smart-hint" id="smartHint">Введите фамилию пожалуйста</div>
+        <div class="smart-input-row">
+            <input id="smartInput" class="smart-input" autocomplete="off" inputmode="text" placeholder="Введите ответ">
+            <button type="button" class="btn btn-primary smart-next-btn" id="smartNextBtn">Далее</button>
         </div>
+        <div class="smart-error" id="smartError"></div>
+        <div class="smart-progress" id="smartProgress"></div>
     </div>
+    <div class="completion-message" id="completionMessage">Заполнение завершено</div>
 
-    <div class="field-group">
-        <span class="field-label">🆔 ID партнёра</span>
-        <div class="field-row"><input id="inputID" placeholder="Введите ID" value=""></div>
-    </div>
-
-    <div class="field-group">
-        <span class="field-label">📞 Номер телефона, формат: 11 цифр</span>
-        <div class="field-row"><input id="inputPhone" placeholder="11 цифр" inputmode="numeric" maxlength="11"></div>
-    </div>
-
-    <div class="field-group">
-        <span class="field-label">📅 Дата регистрации, формат: ддммгггг</span>
-        <div class="field-row"><input id="inputDateReg" placeholder="ддммгггг" inputmode="numeric" maxlength="8"></div>
-    </div>
-
-    <div class="field-group">
-        <span class="field-label">👤 Спонсор</span>
-        <div class="field-row">
-            <input id="inputSponsorFam" placeholder="Фамилия спонсора" class="small-input" inputmode="text" autocomplete="off">
-            <input id="inputSponsorIm" placeholder="Имя спонсора" class="small-input" inputmode="text" autocomplete="off">
-            <input id="inputSponsorOtch" placeholder="Отчество спонсора (опц.)" class="small-input" inputmode="text" autocomplete="off">
-        </div>
-        <div class="field-row" style="margin-top:6px;">
-            <input id="inputSponsorID" placeholder="ID партнёра спонсора" style="flex:1;">
-            <input id="inputSponsorPhone" placeholder="Телефон спонсора (11 цифр)" style="flex:1;" inputmode="numeric" maxlength="11">
-        </div>
+    <div class="hidden-fields" aria-hidden="true">
+        <input id="inputFam">
+        <input id="inputIm">
+        <input id="inputOtch">
+        <input id="inputID">
+        <input id="inputPhone">
+        <input id="inputDateReg">
+        <input id="inputSponsorFam">
+        <input id="inputSponsorIm">
+        <input id="inputSponsorOtch">
+        <input id="inputSponsorID">
+        <input id="inputSponsorPhone">
     </div>
 
     <!-- Всплывающее предупреждение (показывается на 3 секунды) -->
     <div id="warningToast" class="warning-toast">*Обязательные поля не заполнены полностью, дополните информацию.</div>
 
-    <!-- Инструкция -->
-    <div class="info-text">
-        <strong>Два способа подачи заявки:</strong><br>
-        1. Заполните все данные и нажмите «Печатать файл», чтобы распечатать документ с телефона. Кнопка «Поделиться» также позволяет скачать PDF в папку приложений.<br><br>
-        2. Нажмите «Онлайн-подписание», подпишитесь и подтвердите — появится PNG. Кнопка «Поделиться» позволяет отправить картинку по почте или сохранить в галерею.<br><br>
-        <span style="color:#888; font-size:11px;">*Если кнопки «Печатать файл» и «Онлайн-подписание» неактивны, проверьте полностью ли введены 11-значный номер телефона и 8-цифровая дата регистрации.</span>
-    </div>
+    <div class="submission-section" id="submissionSection">
+        <!-- Инструкция -->
+        <div class="info-text">
+            <strong>Два способа подачи заявки:</strong><br><br>
+            При наличии Wi-Fi принтера нажмите «Печатать файл», чтобы распечатать документ с телефона. С помощью кнопки «Поделиться» также можно скачать PDF-файл в папку приложений.<br><br>
+            Нажмите «Онлайн-подписание», подпишите документ и подтвердите — будет создано изображение PNG. Кнопка «Поделиться» позволяет отправить изображение на электронную почту или сохранить в галерею.
+        </div>
 
-    <div class="action-row">
-        <button class="btn btn-success" id="printDocBtn" disabled>🖨 Печатать файл</button>
-        <button class="btn btn-primary" id="onlineSignBtn" disabled>✍ Онлайн-подписание</button>
+        <div class="action-row">
+            <button class="btn btn-success" id="printDocBtn" disabled>🖨 Печатать файл</button>
+            <button class="btn btn-primary" id="onlineSignBtn" disabled>✍ Онлайн-подписание</button>
+        </div>
     </div>
 
     <div id="signatureArea" class="signature-area">
@@ -355,7 +379,7 @@
     <div class="save-hint">📌 Длительно нажмите на изображение, чтобы сохранить в галерею</div>
     <div class="image-actions">
         <button class="btn btn-primary" id="shareImageBtn">📤 Поделиться</button>
-        <button class="btn btn-outline" id="printImageBtn">🖨 Печать</button>
+        <button class="btn btn-outline" id="printImageBtn">🖨 Печать бумажного документа</button>
     </div>
     <button class="btn btn-outline back-btn" id="backToFormBtn">← Вернуться к форме</button>
 </div>
@@ -408,6 +432,110 @@
         let signatureConfirmed = false;
         let currentImageData = null;
         let warningTimeout = null;
+
+
+        const smartInput = document.getElementById('smartInput');
+        const smartQuestion = document.getElementById('smartQuestion');
+        const smartHint = document.getElementById('smartHint');
+        const smartError = document.getElementById('smartError');
+        const smartNextBtn = document.getElementById('smartNextBtn');
+        const smartProgress = document.getElementById('smartProgress');
+        const completionMessage = document.getElementById('completionMessage');
+        const submissionSection = document.getElementById('submissionSection');
+
+        const smartSteps = [
+            { key:'fam', label:'Фамилия', question:'Фамилия заявителя', hint:'Введите фамилию пожалуйста', target:inputFam, type:'text', required:true },
+            { key:'im', label:'Имя', question:'Имя заявителя', hint:'Введите имя пожалуйста', target:inputIm, type:'text', required:true },
+            { key:'otch', label:'Отчество', question:'Отчество заявителя', hint:'Введите отчество пожалуйста', target:inputOtch, type:'text', required:false },
+            { key:'id', label:'ID партнёра', question:'ID партнёра', hint:'Введите ID партнёра', target:inputID, type:'id', required:true },
+            { key:'phone', label:'Телефон', question:'Номер телефона заявителя', hint:'Введите ровно 11 цифр', target:inputPhone, type:'phone', required:true },
+            { key:'date', label:'Дата', question:'Дата регистрации', hint:'Введите 8 цифр в формате ддммгггг', target:inputDateReg, type:'date', required:true },
+            { key:'sfam', label:'Фамилия спонсора', question:'Фамилия спонсора', hint:'Введите фамилию спонсора пожалуйста', target:inputSponsorFam, type:'text', required:true },
+            { key:'sim', label:'Имя спонсора', question:'Имя спонсора', hint:'Введите имя спонсора пожалуйста', target:inputSponsorIm, type:'text', required:true },
+            { key:'sotch', label:'Отчество спонсора', question:'Отчество спонсора', hint:'Введите отчество пожалуйста', target:inputSponsorOtch, type:'text', required:false },
+            { key:'sid', label:'ID спонсора', question:'ID спонсора', hint:'Введите ID спонсора', target:inputSponsorID, type:'id', required:true },
+            { key:'sphone', label:'Телефон спонсора', question:'Номер телефона спонсора', hint:'Введите ровно 11 цифр', target:inputSponsorPhone, type:'phone', required:true }
+        ];
+        let smartIndex = 0;
+
+        function normalizeSmartValue(step, value) {
+            value = value.trim();
+            if (step.type === 'text') return value.replace(/[^a-zA-Zа-яА-ЯёЁ-]/g, '');
+            if (step.type === 'phone' || step.type === 'date') return value.replace(/\D/g, '');
+            return value;
+        }
+        function validateSmart(step, value) {
+            if (!value && !step.required) return '';
+            if (!value) return 'Это обязательное поле.';
+            if (step.type === 'text' && value.length < 2) return 'Введите не менее 2 букв.';
+            if (step.type === 'phone' && !/^\d{11}$/.test(value)) return 'Телефон должен содержать ровно 11 цифр.';
+            if (step.type === 'date') {
+                if (!/^\d{8}$/.test(value)) return 'Дата должна содержать 8 цифр.';
+                const d=+value.slice(0,2), m=+value.slice(2,4), y=+value.slice(4);
+                const dt=new Date(y,m-1,d);
+                if (dt.getFullYear()!==y || dt.getMonth()!==m-1 || dt.getDate()!==d) return 'Введите существующую дату.';
+            }
+            return '';
+        }
+        function renderSmartProgress() {
+            smartProgress.innerHTML='';
+            smartSteps.forEach((step, i)=>{
+                const b=document.createElement('button'); b.type='button'; b.className='progress-step'; b.textContent=step.label;
+                const v=step.target.value.trim();
+                if (i===smartIndex) b.classList.add('active');
+                else if (v) b.classList.add('done');
+                else if (!step.required && i<smartIndex) b.classList.add('skipped');
+                b.addEventListener('click',()=>{ smartIndex=i; completionMessage.classList.remove('visible'); submissionSection.classList.remove('visible'); renderSmartStep(); });
+                smartProgress.appendChild(b);
+            });
+        }
+        function renderSmartStep() {
+            const step=smartSteps[smartIndex];
+            smartInput.disabled = false;
+            smartNextBtn.disabled = false;
+            smartQuestion.textContent=`${smartIndex+1}. ${step.question}`;
+            smartHint.textContent=step.hint;
+            smartInput.value=step.target.value; smartError.textContent='';
+            smartInput.inputMode=(step.type==='phone'||step.type==='date')?'numeric':'text';
+            smartInput.maxLength=step.type==='phone'?11:(step.type==='date'?8:80);
+            smartInput.placeholder=step.required?'Введите ответ':'Можно пропустить';
+            smartNextBtn.textContent=smartIndex===smartSteps.length-1?'Готово':'Далее';
+            renderSmartProgress();
+            setTimeout(()=>{ smartInput.focus(); smartInput.select(); },0);
+        }
+        function submitSmartStep() {
+            const step=smartSteps[smartIndex];
+            const value=normalizeSmartValue(step, smartInput.value);
+            const err=validateSmart(step,value);
+            if (err) { smartError.textContent=err; return; }
+            step.target.value=value;
+            step.target.dispatchEvent(new Event('input',{bubbles:true}));
+            updateAll();
+            if (smartIndex < smartSteps.length-1) {
+                smartIndex++;
+                renderSmartStep();
+            } else {
+                smartQuestion.textContent = 'Готово';
+                smartHint.textContent = '';
+                smartInput.value = '';
+                smartInput.disabled = true;
+                smartNextBtn.disabled = true;
+                completionMessage.classList.add('visible');
+                submissionSection.classList.add('visible');
+                renderSmartProgress();
+                setTimeout(() => completionMessage.scrollIntoView({ behavior:'smooth', block:'center' }), 50);
+            }
+        }
+        smartInput.addEventListener('input',()=>{
+            const step=smartSteps[smartIndex];
+            let v=smartInput.value;
+            if (step.type==='phone') v=v.replace(/\D/g,'').slice(0,11);
+            if (step.type==='date') v=v.replace(/\D/g,'').slice(0,8);
+            if (step.type==='text') v=v.replace(/[^a-zA-Zа-яА-ЯёЁ-]/g,'');
+            smartInput.value=v; smartError.textContent='';
+        });
+        smartInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); submitSmartStep(); } });
+        smartNextBtn.addEventListener('click',submitSmartStep);
 
         // ----- helpers -----
         function capitalizeFirst(str) {
@@ -935,7 +1063,7 @@
             }
         });
 
-        window.addEventListener('load', ()=>{ resizeCanvas(); updateAll(); });
+        window.addEventListener('load', ()=>{ resizeCanvas(); updateAll(); renderSmartStep(); });
         window.addEventListener('resize', resizeCanvas);
 
         updateAll();
