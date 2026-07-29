@@ -625,10 +625,19 @@
 
         function formatDateReg(raw) {
             if (!raw || raw.length !== 8) return '(дата регистрации)';
-            let d = raw.substring(0,2);
-            let m = raw.substring(2,4);
-            let y = raw.substring(4,8);
-            return `${d}.${m}.${y}`;
+
+            const months = [
+                'января', 'февраля', 'марта', 'апреля',
+                'мая', 'июня', 'июля', 'августа',
+                'сентября', 'октября', 'ноября', 'декабря'
+            ];
+
+            const d = raw.substring(0, 2);
+            const monthIndex = Number(raw.substring(2, 4)) - 1;
+            const y = raw.substring(4, 8);
+
+            if (monthIndex < 0 || monthIndex > 11) return '(дата регистрации)';
+            return `${d} ${months[monthIndex]} ${y}`;
         }
 
         function getToday() {
@@ -647,11 +656,18 @@
             return `${dd}.${mm}.${yyyy}`;
         }
 
-        function getChineseDate(dateStr) {
-            if (!dateStr || dateStr === '(дата регистрации)') return '(дата регистрации)';
-            let parts = dateStr.split('.');
-            if (parts.length !== 3) return dateStr;
-            return `${parts[2]}年${parts[1]}月${parts[0]}日`;
+        function getChineseDate(rawDate) {
+            if (!rawDate) return '(дата регистрации)';
+
+            const digits = String(rawDate).replace(/\D/g, '');
+            if (digits.length === 8) {
+                const d = digits.substring(0, 2);
+                const m = digits.substring(2, 4);
+                const y = digits.substring(4, 8);
+                return `${y}年${m}月${d}日`;
+            }
+
+            return '(дата регистрации)';
         }
 
         // Показать предупреждение на 3 секунды
@@ -914,7 +930,7 @@
             let sPhoneDisplay = (sPhoneRaw.length === 11) ? formatPhone(sPhoneRaw) : '(Номер телефона спонсора)';
             if (sPhoneRaw.length === 11) sPhoneDisplay = 'телефон ' + sPhoneDisplay;
             const today = getToday();
-            const chineseDateReg = getChineseDate(dateRegDisplay);
+            const chineseDateReg = getChineseDate(dateRegRaw);
             const chineseToday = getChineseDate(today.replace(' г.', ''));
             const chineseSid = sidRaw ? '会员编号' + sidRaw : '(ID партнёра спонсора)';
             const chineseSphone = (sPhoneRaw.length === 11) ? '手机号：' + sPhoneDisplay.replace('телефон ', '') : '(Номер телефона спонсора)';
