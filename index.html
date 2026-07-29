@@ -108,6 +108,16 @@
             border: 1px solid #c9d8ec;
             cursor: crosshair;
         }
+
+        .signature-tip{
+            margin-top:8px;
+            margin-bottom:10px;
+            text-align:center;
+            color:#2563eb;
+            font-size:12px;
+            font-style:italic;
+            line-height:1.5;
+        }
         .signature-actions {
             display: flex;
             gap: 12px;
@@ -361,6 +371,7 @@
     <div id="signatureArea" class="signature-area">
         <span class="field-label" style="margin-bottom:4px;">✍️ Подпись (синяя ручка)</span>
         <canvas id="signatureCanvas" class="signature-pad"></canvas>
+        <div class="signature-tip">Для более удобной и крупной подписи рекомендуется повернуть телефон горизонтально.</div>
         <div class="signature-actions">
             <button class="btn btn-outline" id="clearSignatureBtn">✕ Очистить</button>
             <button class="btn btn-primary" id="confirmSignatureBtn" disabled>✔ Подтвердить</button>
