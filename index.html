@@ -457,6 +457,7 @@
             { key:'sphone', label:'Телефон спонсора', question:'Номер телефона спонсора', hint:'Введите ровно 11 цифр', target:inputSponsorPhone, type:'phone', required:true }
         ];
         let smartIndex = 0;
+        let smartInputComposing = false;
 
         function normalizeSmartValue(step, value) {
             value = value.trim();
@@ -526,13 +527,20 @@
                 setTimeout(() => completionMessage.scrollIntoView({ behavior:'smooth', block:'center' }), 50);
             }
         }
-        smartInput.addEventListener('input',()=>{
+        function sanitizeSmartInput() {
             const step=smartSteps[smartIndex];
             let v=smartInput.value;
             if (step.type==='phone') v=v.replace(/\D/g,'').slice(0,11);
             if (step.type==='date') v=v.replace(/\D/g,'').slice(0,8);
             if (step.type==='text') v=v.replace(/[^a-zA-Zа-яА-ЯёЁ\u3400-\u9FFF-]/g,'');
-            smartInput.value=v; smartError.textContent='';
+            smartInput.value=v;
+            smartError.textContent='';
+        }
+        smartInput.addEventListener('compositionstart',()=>{ smartInputComposing = true; });
+        smartInput.addEventListener('compositionend',()=>{ smartInputComposing = false; sanitizeSmartInput(); });
+        smartInput.addEventListener('input',()=>{
+            if (smartInputComposing) return;
+            sanitizeSmartInput();
         });
         smartInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); submitSmartStep(); } });
         smartNextBtn.addEventListener('click',submitSmartStep);
@@ -698,15 +706,18 @@
         });
 
         function handleFIOInput(e) {
+            if (e.target.dataset.composing === '1') return;
             let val = e.target.value;
             val = val.replace(/[^a-zA-Zа-яА-ЯёЁ\u3400-\u9FFF-]/g, '');
-            if (val.length > 0) {
+            if (val.length > 0 && !/[\u3400-\u9FFF]/.test(val)) {
                 val = val.charAt(0).toUpperCase() + val.slice(1).toLowerCase();
             }
             e.target.value = val;
             updateAll();
         }
         [inputFam, inputIm, inputOtch, inputSponsorFam, inputSponsorIm, inputSponsorOtch].forEach(el => {
+            el.addEventListener('compositionstart', function(){ this.dataset.composing = '1'; });
+            el.addEventListener('compositionend', function(){ this.dataset.composing = '0'; handleFIOInput({target:this}); });
             el.addEventListener('input', handleFIOInput);
             el.addEventListener('focus', function() {
                 this.setAttribute('autocapitalize', 'characters');
@@ -809,7 +820,10 @@
             }
             signatureArea.classList.toggle('visible');
             if (signatureArea.classList.contains('visible')) {
-                setTimeout(resizeCanvas, 100);
+                setTimeout(() => {
+                    resizeCanvas();
+                    signatureArea.scrollIntoView({ behavior:'smooth', block:'start' });
+                }, 120);
             }
         });
 
@@ -1083,11 +1097,10 @@
                         .sheet img { display:block; width:100%; height:100%; object-fit:contain; }
                         @page { size:A4; margin:0; }
                         @media print {
-                            html, body { width:210mm; height:297mm; background:#fff; }
-                            body { padding:0 !important; }
+                            html, body { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; overflow:hidden !important; background:#fff; }
                             .toolbar { display:none !important; }
-                            .sheet { width:210mm; height:297mm; margin:0; overflow:hidden; page-break-after:avoid; break-after:avoid-page; }
-                            .sheet img { width:210mm; height:297mm; object-fit:contain; }
+                            .sheet { position:fixed; inset:0; width:210mm; height:297mm; margin:0 !important; padding:0 !important; overflow:hidden; break-inside:avoid; page-break-inside:avoid; }
+                            .sheet img { display:block; width:210mm; height:297mm; margin:0; padding:0; object-fit:fill; }
                         }
                     </style>
                     </head><body>
