@@ -1,6 +1,7 @@
 
 
 
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -320,11 +321,39 @@
         .completion-message { display:none; margin-top:14px; padding:12px 14px; border-radius:14px; background:#e5f3e8; color:#1e7e34; font-weight:600; text-align:center; }
         .completion-message.visible { display:block; }
         @media (max-width: 480px) { .smart-input-row { flex-direction: column; } .smart-next-btn { width: 100%; } }
+
+        .top-controls{
+            display:flex;justify-content:flex-end;align-items:center;gap:10px;
+            margin-bottom:14px;position:sticky;top:8px;z-index:50;
+            background:rgba(255,255,255,.96);padding:8px 10px;border-radius:16px;
+            border:1px solid #d7e1ed;box-shadow:0 4px 14px rgba(0,0,0,.06);
+            backdrop-filter:blur(8px);
+        }
+        .language-label{font-size:13px;font-weight:600;color:#1f3a5e}
+        .language-select{padding:8px 30px 8px 12px;border:1px solid #b7cbe3;border-radius:12px;background:#fff;color:#1f3a5e;font-size:14px;cursor:pointer}
+        .refresh-btn{padding:8px 15px!important}
+        body.lang-ru .bilingual-preview section:first-child{display:block;width:100%}
+        body.lang-ru .bilingual-preview section:nth-child(2){display:none}
+        body.lang-zh .bilingual-preview section:first-child{display:none}
+        body.lang-zh .bilingual-preview section:nth-child(2){display:block;width:100%}
+        @media(max-width:480px){
+            .top-controls{position:static;display:grid;grid-template-columns:auto 1fr auto}
+            .language-select{width:100%}
+        }
+
     </style>
 </head>
 <body>
 <div class="card" id="pageFirst">
-    <h1>📄 Бланк обращения</h1>
+    <div class="top-controls">
+        <span class="language-label" id="languageLabel">Язык</span>
+        <select id="languageSelect" class="language-select" aria-label="Выбор языка">
+            <option value="ru">RU</option>
+            <option value="zh">CH</option>
+        </select>
+        <button type="button" class="btn btn-primary refresh-btn" id="refreshPageBtn">↻ Обновить</button>
+    </div>
+    <h1 id="pageTitle">📄 Бланк обращения</h1>
 
     <div id="docPreview" class="doc-preview">
         <div class="bilingual-preview">
@@ -358,7 +387,7 @@
         </div>
     </div>
 
-    <div style="font-weight:600; margin-bottom:8px;">Заполнить информацию:</div>
+    <div id="fillInfoLabel" style="font-weight:600; margin-bottom:8px;">Заполнить информацию:</div>
 
     <div class="smart-form">
         <div class="smart-question" id="smartQuestion">Фамилия заявителя</div>
@@ -391,7 +420,7 @@
 
     <div class="submission-section" id="submissionSection">
         <!-- Инструкция -->
-        <div class="info-text">
+        <div class="info-text" id="submissionInfo">
             <strong>Два способа подачи заявки:</strong><br><br>
             При наличии Wi-Fi принтера нажмите «Печатать файл», чтобы распечатать документ с телефона. С помощью кнопки «Поделиться» также можно скачать PDF-файл в папку приложений.<br><br>
             Нажмите «Онлайн-подписание», подпишите документ и подтвердите — будет создано изображение PNG. Кнопка «Поделиться» позволяет отправить изображение на электронную почту или сохранить в галерею.
@@ -404,9 +433,9 @@
     </div>
 
     <div id="signatureArea" class="signature-area">
-        <span class="field-label" style="margin-bottom:4px;">✍️ Подпись (синяя ручка)</span>
+        <span class="field-label" id="signatureLabel" style="margin-bottom:4px;">✍️ Подпись (синяя ручка)</span>
         <canvas id="signatureCanvas" class="signature-pad"></canvas>
-        <div class="signature-tip">Для более удобной и крупной подписи рекомендуется повернуть телефон горизонтально.</div>
+        <div class="signature-tip" id="signatureTip">Для более удобной и крупной подписи рекомендуется повернуть телефон горизонтально.</div>
         <div class="signature-actions">
             <button class="btn btn-outline" id="clearSignatureBtn">✕ Очистить</button>
             <button class="btn btn-primary" id="confirmSignatureBtn" disabled>✔ Подтвердить</button>
@@ -414,7 +443,7 @@
         <button class="pdf-btn" id="createImageBtn" disabled>🖼 Создать изображение</button>
     </div>
 
-    <div class="footnote">* Все поля синхронизируются. Подпись вставляется после подтверждения.</div>
+    <div class="footnote" id="footnoteText">* Все поля синхронизируются. Подпись вставляется после подтверждения.</div>
 </div>
 
 <!-- Вторая страница (только "Поделиться" и "Печать") -->
@@ -422,7 +451,7 @@
     <div class="image-wrapper" id="imageWrapper">
         <div id="imageContainer" style="width:100%;"></div>
     </div>
-    <div class="save-hint">📌 Длительно нажмите на изображение, чтобы сохранить в галерею</div>
+    <div class="save-hint" id="saveHint">📌 Длительно нажмите на изображение, чтобы сохранить в галерею</div>
     <div class="image-actions">
         <button class="btn btn-primary" id="shareImageBtn">📤 Поделиться</button>
         <button class="btn btn-outline" id="printImageBtn">🖨 Печать бумажного документа</button>
@@ -434,6 +463,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
     (function(){
+        const LANG_KEY = 'futureBiotechApplicationLanguage';
+        let currentLang = localStorage.getItem(LANG_KEY) === 'zh' ? 'zh' : 'ru';
         // ----- DOM -----
         const previewFIO = document.getElementById('previewFIO');
         const previewFIO2 = document.getElementById('previewFIO2');
@@ -500,7 +531,8 @@
         const completionMessage = document.getElementById('completionMessage');
         const submissionSection = document.getElementById('submissionSection');
 
-        const smartSteps = [
+        // 俄文界面保留姓、名、父称分开填写；中文界面使用完整姓名，共 7 个问题。
+        const ruSmartSteps = [
             { key:'fam', label:'Фамилия', question:'Фамилия заявителя', hint:'Введите фамилию пожалуйста', target:inputFam, type:'text', required:true },
             { key:'im', label:'Имя', question:'Имя заявителя', hint:'Введите имя пожалуйста', target:inputIm, type:'text', required:true },
             { key:'otch', label:'Отчество', question:'Отчество заявителя', hint:'Введите отчество пожалуйста', target:inputOtch, type:'text', required:false },
@@ -513,6 +545,43 @@
             { key:'sid', label:'ID спонсора', question:'ID спонсора', hint:'Введите ID спонсора', target:inputSponsorID, type:'id', required:true },
             { key:'sphone', label:'Телефон спонсора', question:'Номер телефона спонсора', hint:'Введите ровно 11 цифр', target:inputSponsorPhone, type:'phone', required:true }
         ];
+
+        const zhSmartSteps = [
+            {
+                key:'fio', label:'申请人姓名', question:'申请人姓名', hint:'请输入申请人姓名',
+                target:inputFam, type:'text', required:true, minLength:1,
+                getValue:()=>getFIO(''),
+                setValue:(value)=>{ inputFam.value=value; inputIm.value=''; inputOtch.value=''; }
+            },
+            { key:'id', label:'会员编号', question:'会员编号', hint:'请输入会员编号', target:inputID, type:'id', required:true },
+            { key:'phone', label:'手机号', question:'手机号', hint:'请输入11位手机号码', target:inputPhone, type:'phone', required:true },
+            { key:'date', label:'注册日期', question:'注册日期', hint:'请按日.月.年的格式输入，圆点会自动添加', target:inputDateReg, type:'date', required:true },
+            {
+                key:'sfio', label:'推荐人姓名', question:'推荐人姓名', hint:'请输入推荐人姓名',
+                target:inputSponsorFam, type:'text', required:true, minLength:1,
+                getValue:()=>getSponsorFIO(''),
+                setValue:(value)=>{ inputSponsorFam.value=value; inputSponsorIm.value=''; inputSponsorOtch.value=''; }
+            },
+            { key:'sid', label:'推荐人会员编号', question:'推荐人会员编号', hint:'请输入推荐人的会员编号', target:inputSponsorID, type:'id', required:true },
+            { key:'sphone', label:'推荐人手机号', question:'推荐人手机号', hint:'请输入推荐人的11位手机号码', target:inputSponsorPhone, type:'phone', required:true }
+        ];
+
+        function getActiveSmartSteps() {
+            return currentLang === 'zh' ? zhSmartSteps : ruSmartSteps;
+        }
+
+        function getSmartStepValue(step) {
+            return step.getValue ? step.getValue() : step.target.value.trim();
+        }
+
+        function setSmartStepValue(step, value) {
+            if (step.setValue) {
+                step.setValue(value);
+            } else {
+                step.target.value = value;
+                step.target.dispatchEvent(new Event('input', { bubbles:true }));
+            }
+        }
         let smartIndex = 0;
         let smartInputComposing = false;
 
@@ -524,22 +593,24 @@
         }
         function validateSmart(step, value) {
             if (!value && !step.required) return '';
-            if (!value) return 'Это обязательное поле.';
-            if (step.type === 'text' && value.length < 2) return 'Введите не менее 2 букв.';
-            if (step.type === 'phone' && !/^\d{11}$/.test(value)) return 'Телефон должен содержать ровно 11 цифр.';
+            if (!value) return currentLang==='zh' ? '此项为必填项。' : 'Это обязательное поле。';
+            const minLength = step.minLength || 2;
+            if (step.type === 'text' && value.length < minLength) return currentLang==='zh' ? `请至少输入${minLength}个字符。` : `Введите не менее ${minLength} букв。`;
+            if (step.type === 'phone' && !/^\d{11}$/.test(value)) return currentLang==='zh' ? '手机号码必须正好为11位数字。' : 'Телефон должен содержать ровно 11 цифр。';
             if (step.type === 'date') {
-                if (!/^\d{8}$/.test(value)) return 'Дата должна содержать 8 цифр.';
+                if (!/^\d{8}$/.test(value)) return currentLang==='zh' ? '日期必须包含8位数字。' : 'Дата должна содержать 8 цифр。';
                 const d=+value.slice(0,2), m=+value.slice(2,4), y=+value.slice(4);
                 const dt=new Date(y,m-1,d);
-                if (dt.getFullYear()!==y || dt.getMonth()!==m-1 || dt.getDate()!==d) return 'Введите существующую дату.';
+                if (dt.getFullYear()!==y || dt.getMonth()!==m-1 || dt.getDate()!==d) return currentLang==='zh' ? '请输入有效日期。' : 'Введите существующую дату。';
             }
             return '';
         }
         function renderSmartProgress() {
+            const steps = getActiveSmartSteps();
             smartProgress.innerHTML='';
-            smartSteps.forEach((step, i)=>{
+            steps.forEach((step, i)=>{
                 const b=document.createElement('button'); b.type='button'; b.className='progress-step'; b.textContent=step.label;
-                const v=step.target.value.trim();
+                const v=getSmartStepValue(step);
                 if (i===smartIndex) b.classList.add('active');
                 else if (v) b.classList.add('done');
                 else if (!step.required && i<smartIndex) b.classList.add('skipped');
@@ -548,32 +619,35 @@
             });
         }
         function renderSmartStep() {
-            const step=smartSteps[smartIndex];
+            const steps = getActiveSmartSteps();
+            if (smartIndex >= steps.length) smartIndex = steps.length - 1;
+            const step=steps[smartIndex];
             smartInput.disabled = false;
             smartNextBtn.disabled = false;
             smartQuestion.textContent=`${smartIndex+1}. ${step.question}`;
             smartHint.textContent=step.hint;
-            smartInput.value=step.type==='date' ? formatDateInput(step.target.value) : step.target.value; smartError.textContent='';
+            const stepValue = getSmartStepValue(step);
+            smartInput.value=step.type==='date' ? formatDateInput(stepValue) : stepValue; smartError.textContent='';
             smartInput.inputMode=(step.type==='phone'||step.type==='date')?'numeric':'text';
             smartInput.maxLength=step.type==='phone'?11:(step.type==='date'?10:80);
-            smartInput.placeholder=step.type==='date' ? 'ДД.ММ.ГГГГ' : (step.required?'Введите ответ':'Можно пропустить');
-            smartNextBtn.textContent=smartIndex===smartSteps.length-1?'Готово':'Далее';
+            smartInput.placeholder=step.type==='date' ? (currentLang==='zh'?'日.月.年':'ДД.ММ.ГГГГ') : (step.required?(currentLang==='zh'?'请输入答案':'Введите ответ'):(currentLang==='zh'?'可以跳过':'Можно пропустить'));
+            smartNextBtn.textContent=smartIndex===steps.length-1?(currentLang==='zh'?'完成':'Готово'):(currentLang==='zh'?'下一步':'Далее');
             renderSmartProgress();
             setTimeout(()=>{ smartInput.focus(); smartInput.select(); },0);
         }
         function submitSmartStep() {
-            const step=smartSteps[smartIndex];
+            const steps = getActiveSmartSteps();
+            const step=steps[smartIndex];
             const value=normalizeSmartValue(step, smartInput.value);
             const err=validateSmart(step,value);
             if (err) { smartError.textContent=err; return; }
-            step.target.value=value;
-            step.target.dispatchEvent(new Event('input',{bubbles:true}));
+            setSmartStepValue(step, value);
             updateAll();
-            if (smartIndex < smartSteps.length-1) {
+            if (smartIndex < steps.length-1) {
                 smartIndex++;
                 renderSmartStep();
             } else {
-                smartQuestion.textContent = 'Готово';
+                smartQuestion.textContent = currentLang==='zh' ? '完成' : 'Готово';
                 smartHint.textContent = '';
                 smartInput.value = '';
                 smartInput.disabled = true;
@@ -592,7 +666,7 @@
         }
 
         function sanitizeSmartInput() {
-            const step=smartSteps[smartIndex];
+            const step=getActiveSmartSteps()[smartIndex];
             let v=smartInput.value;
             if (step.type==='phone') {
                 v = v.replace(/\D/g, '');
@@ -623,7 +697,7 @@
             return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
         }
 
-        function getFIO() {
+        function getFIO(fallback = '(ФИО заявителя)') {
             let fam = inputFam.value.trim();
             let im = inputIm.value.trim();
             let otch = inputOtch.value.trim();
@@ -631,22 +705,22 @@
             if (fam) parts.push(capitalizeFirst(fam));
             if (im) parts.push(capitalizeFirst(im));
             if (otch) parts.push(capitalizeFirst(otch));
-            return parts.join(' ').trim() || '(ФИО заявителя)';
+            return parts.join(' ').trim() || fallback;
         }
 
-        function getShortFIO() {
+        function getShortFIO(fallback = '(ФИО заявителя)') {
             let fam = inputFam.value.trim();
             let im = inputIm.value.trim();
             let otch = inputOtch.value.trim();
-            if (!fam && !im) return '(ФИО заявителя)';
+            if (!fam && !im) return fallback;
             let result = fam ? capitalizeFirst(fam) : '';
             if (im) result += '. ' + im.charAt(0).toUpperCase() + '.';
             if (otch) result += ' ' + otch.charAt(0).toUpperCase() + '.';
-            if (!result) return '(ФИО заявителя)';
+            if (!result) return fallback;
             return result;
         }
 
-        function getSponsorFIO() {
+        function getSponsorFIO(fallback = '(ФИО спонсора)') {
             let fam = inputSponsorFam.value.trim();
             let im = inputSponsorIm.value.trim();
             let otch = inputSponsorOtch.value.trim();
@@ -654,7 +728,7 @@
             if (fam) parts.push(capitalizeFirst(fam));
             if (im) parts.push(capitalizeFirst(im));
             if (otch) parts.push(capitalizeFirst(otch));
-            return parts.join(' ').trim() || '(ФИО спонсора)';
+            return parts.join(' ').trim() || fallback;
         }
 
         function onlyDigits(str) { return str.replace(/\D/g,''); }
@@ -709,7 +783,7 @@
         }
 
         function getChineseDate(rawDate) {
-            if (!rawDate) return '(дата регистрации)';
+            if (!rawDate) return '(注册日期)';
 
             const digits = String(rawDate).replace(/\D/g, '');
             if (digits.length === 8) {
@@ -719,7 +793,7 @@
                 return `${y}年${m}月${d}日`;
             }
 
-            return '(дата регистрации)';
+            return '(注册日期)';
         }
 
         // Показать предупреждение на 3 секунды
@@ -771,14 +845,19 @@
 
             const chineseDateReg = getChineseDate(dateRegRaw);
             const chineseToday = getChineseDate(getToday().replace(' г.', ''));
-            previewZhFIO.textContent = fio;
-            previewZhFIO2.textContent = fio;
-            previewZhFIO3.textContent = shortFio;
-            previewZhID.textContent = id;
-            previewZhPhone.textContent = phoneDisplay;
+            const chineseFio = getFIO('(申请人姓名)');
+            const chineseShortFio = getShortFIO('(申请人姓名)');
+            const chineseId = inputID.value.trim() || '(会员编号)';
+            const chinesePhone = (phoneRaw.length === 11) ? formatPhone(phoneRaw) : '(手机号码)';
+            const chineseSponsorFio = getSponsorFIO('(推荐人姓名)');
+            previewZhFIO.textContent = chineseFio;
+            previewZhFIO2.textContent = chineseFio;
+            previewZhFIO3.textContent = chineseShortFio;
+            previewZhID.textContent = chineseId;
+            previewZhPhone.textContent = chinesePhone;
             previewZhDateReg.textContent = chineseDateReg;
             previewZhDateApp.textContent = chineseToday;
-            previewZhSponsorFIO.textContent = sfio;
+            previewZhSponsorFIO.textContent = chineseSponsorFio;
             previewZhSponsorID.textContent = sidRaw ? '会员编号' + sidRaw : '(推荐人会员编号)';
             previewZhSponsorPhone.textContent = (sPhoneRaw.length === 11) ? '手机号：' + sPhoneDisplay.replace('телефон ', '') : '(推荐人手机号)';
 
@@ -791,7 +870,9 @@
             const simOk = inputSponsorIm.value.trim().length > 0;
             const sidOk = inputSponsorID.value.trim().length > 0;
             const sphoneOk = onlyDigits(inputSponsorPhone.value).length === 11;
-            const allReq = famOk && imOk && idOk && phoneOk && dateOk && sfamOk && simOk && sidOk && sphoneOk;
+            const applicantNameOk = currentLang === 'zh' ? getFIO('').length > 0 : famOk && imOk;
+            const sponsorNameOk = currentLang === 'zh' ? getSponsorFIO('').length > 0 : sfamOk && simOk;
+            const allReq = applicantNameOk && idOk && phoneOk && dateOk && sponsorNameOk && sidOk && sphoneOk;
 
             printDocBtn.disabled = !allReq;
             onlineSignBtn.disabled = !allReq;
@@ -997,8 +1078,13 @@
             const today = getToday();
             const chineseDateReg = getChineseDate(dateRegRaw);
             const chineseToday = getChineseDate(today.replace(' г.', ''));
-            const chineseSid = sidRaw ? '会员编号' + sidRaw : '(ID партнёра спонсора)';
-            const chineseSphone = (sPhoneRaw.length === 11) ? '手机号：' + sPhoneDisplay.replace('телефон ', '') : '(Номер телефона спонсора)';
+            const chineseFio = getFIO('(申请人姓名)');
+            const chineseShortFio = getShortFIO('(申请人姓名)');
+            const chineseId = inputID.value.trim() || '(会员编号)';
+            const chinesePhone = (phoneRaw.length === 11) ? formatPhone(phoneRaw) : '(手机号码)';
+            const chineseSponsorFio = getSponsorFIO('(推荐人姓名)');
+            const chineseSid = sidRaw ? '会员编号' + sidRaw : '(推荐人会员编号)';
+            const chineseSphone = (sPhoneRaw.length === 11) ? '手机号：' + sPhoneDisplay.replace('телефон ', '') : '(推荐人手机号)';
 
             const page = document.createElement('div');
             page.style.cssText = [
@@ -1031,7 +1117,7 @@
                             <p>ФИО: <strong>${shortFio}</strong></p>
                             <div class="signature-row">
                                 <span>Подпись:&nbsp;</span>
-                                <div class="signature-slot">${signatureSrc ? `<img class="signature-image" src="${signatureSrc}" alt="Подпись">` : ''}</div>
+                                <div class="signature-slot">${signatureSrc && currentLang === 'ru' ? `<img class="signature-image" src="${signatureSrc}" alt="Подпись">` : ''}</div>
                             </div>
                         </div>
                     </section>
@@ -1039,14 +1125,14 @@
                         <p class="right">致未来生物科技集团</p>
                         <p class="right">俄罗斯区负责人</p>
                         <p class="right"><strong>杨希阳先生</strong></p>
-                        <p class="right">申请人：<strong>${fio}</strong></p>
+                        <p class="right">申请人：<strong>${chineseFio}</strong></p>
                         <p class="document-title">申请书</p>
-                        <p>本人<strong>${fio}</strong>，自<strong>${chineseDateReg}</strong>起成为未来生物科技集团（俄罗斯区域）合作经销商，会员编号：<strong>${id}</strong>，注册预留手机号：<strong>${phoneDisplay}</strong>。</p>
-                        <p class="paragraph-gap">恳请贵公司将本人及全部下属团队架构整体迁移至<strong>${sfio}</strong>，<strong>${chineseSid}</strong>，<strong>${chineseSphone}</strong>的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</p>
+                        <p>本人<strong>${chineseFio}</strong>，自<strong>${chineseDateReg}</strong>起成为未来生物科技集团（俄罗斯区域）合作经销商，会员编号：<strong>${chineseId}</strong>，注册预留手机号：<strong>${chinesePhone}</strong>。</p>
+                        <p class="paragraph-gap">恳请贵公司将本人及全部下属团队架构整体迁移至<strong>${chineseSponsorFio}</strong>，<strong>${chineseSid}</strong>，<strong>${chineseSphone}</strong>的一级直推下线，迁移时完整保留本人所有会员的职级与全部销售业绩，随本申请书附上本人团队成员名单及包含团队业绩数据的截图凭证。</p>
                         <div class="details-block">
                             <p>申请日期：<strong>${chineseToday}</strong></p>
-                            <p>申请人：<strong>${shortFio}</strong></p>
-                            <div class="signature-row chinese-signature"><span>签字</span></div>
+                            <p>申请人：<strong>${chineseShortFio}</strong></p>
+                            <div class="signature-row chinese-signature"><span>签字：&nbsp;</span><div class="signature-slot">${signatureSrc && currentLang === 'zh' ? `<img class="signature-image" src="${signatureSrc}" alt="签字">` : ''}</div></div>
                         </div>
                     </section>
                 </div>
@@ -1084,27 +1170,27 @@
                 el.style.height = '156px';
             });
 
-            const signatureSlot = page.querySelector('.signature-slot');
-            signatureSlot.style.position = 'relative';
-            signatureSlot.style.flex = '1';
-            signatureSlot.style.height = '156px';
-            signatureSlot.style.borderBottom = 'none';
-            signatureSlot.style.overflow = 'visible';
-            signatureSlot.style.boxSizing = 'border-box';
+            page.querySelectorAll('.signature-slot').forEach(signatureSlot => {
+                signatureSlot.style.position = 'relative';
+                signatureSlot.style.flex = '1';
+                signatureSlot.style.height = '156px';
+                signatureSlot.style.borderBottom = 'none';
+                signatureSlot.style.overflow = 'visible';
+                signatureSlot.style.boxSizing = 'border-box';
 
-            const signatureLine = document.createElement('div');
-            signatureLine.style.position = 'absolute';
-            signatureLine.style.left = '0';
-            signatureLine.style.right = '0';
-            signatureLine.style.bottom = '0';
-            signatureLine.style.height = '1px';
-            signatureLine.style.background = '#000';
-            signatureLine.style.zIndex = '3';
-            signatureLine.style.pointerEvents = 'none';
-            signatureSlot.appendChild(signatureLine);
+                const signatureLine = document.createElement('div');
+                signatureLine.style.position = 'absolute';
+                signatureLine.style.left = '0';
+                signatureLine.style.right = '0';
+                signatureLine.style.bottom = '0';
+                signatureLine.style.height = '1px';
+                signatureLine.style.background = '#000';
+                signatureLine.style.zIndex = '3';
+                signatureLine.style.pointerEvents = 'none';
+                signatureSlot.appendChild(signatureLine);
+            });
 
-            const signatureImage = page.querySelector('.signature-image');
-            if (signatureImage) {
+            page.querySelectorAll('.signature-image').forEach(signatureImage => {
                 signatureImage.style.position = 'absolute';
                 signatureImage.style.left = '50%';
                 signatureImage.style.bottom = '3px';
@@ -1115,7 +1201,7 @@
                 signatureImage.style.objectFit = 'contain';
                 signatureImage.style.pointerEvents = 'none';
                 signatureImage.style.zIndex = '2';
-            }
+            });
 
             const chineseSignature = page.querySelector('.chinese-signature');
             chineseSignature.style.alignItems = 'flex-end';
@@ -1260,9 +1346,66 @@
             }
         });
 
-        window.addEventListener('load', ()=>{ resizeCanvas(); updateAll(); renderSmartStep(); });
+
+        const languageSelect = document.getElementById('languageSelect');
+        const refreshPageBtn = document.getElementById('refreshPageBtn');
+
+        function applyLanguage() {
+            const zh = currentLang === 'zh';
+            document.documentElement.lang = zh ? 'zh-CN' : 'ru';
+            document.body.classList.toggle('lang-zh', zh);
+            document.body.classList.toggle('lang-ru', !zh);
+            languageSelect.value = currentLang;
+
+            document.getElementById('languageLabel').textContent = zh ? '语言' : 'Язык';
+            refreshPageBtn.textContent = zh ? '↻ 更新' : '↻ Обновить';
+            document.getElementById('pageTitle').textContent = zh ? '📄 申请表' : '📄 Бланк обращения';
+            document.getElementById('fillInfoLabel').textContent = zh ? '填写信息：' : 'Заполнить информацию:';
+            completionMessage.textContent = zh ? '填写完成' : 'Заполнение завершено';
+            warningToast.textContent = zh ? '*必填项尚未全部填写，请补充完整。' : '*Обязательные поля не заполнены полностью, дополните информацию。';
+
+            document.getElementById('submissionInfo').innerHTML = zh
+                ? '<strong>两种提交方式：</strong><br><br>如有 Wi‑Fi 打印机，请点击“打印文件”，可直接通过手机打印。也可使用“分享”按钮将 PDF 文件保存到应用文件夹。<br><br>点击“在线签字”，签署并确认后将生成 PNG 图片。“分享”按钮可将图片发送到电子邮箱或保存到相册。'
+                : '<strong>Два способа подачи заявки:</strong><br><br>При наличии Wi-Fi принтера нажмите «Печатать файл», чтобы распечатать документ с телефона. С помощью кнопки «Поделиться» также можно скачать PDF-файл в папку приложений.<br><br>Нажмите «Онлайн-подписание», подпишите документ и подтвердите — будет создано изображение PNG. Кнопка «Поделиться» позволяет отправить изображение на электронную почту или сохранить в галерею.';
+
+            printDocBtn.textContent = zh ? '🖨 打印文件' : '🖨 Печатать файл';
+            onlineSignBtn.textContent = zh ? '✍ 在线签字' : '✍ Онлайн-подписание';
+            document.getElementById('signatureLabel').textContent = zh ? '✍️ 签字（蓝色笔迹）' : '✍️ Подпись (синяя ручка)';
+            document.getElementById('signatureTip').textContent = zh ? '为了更方便并签得更大，建议将手机横向旋转。' : 'Для более удобной и крупной подписи рекомендуется повернуть телефон горизонтально.';
+            clearSignatureBtn.textContent = zh ? '✕ 清除' : '✕ Очистить';
+            confirmSignatureBtn.textContent = zh ? '✔ 确认' : '✔ Подтвердить';
+            createImageBtn.textContent = zh ? '🖼 生成图片' : '🖼 Создать изображение';
+            document.getElementById('footnoteText').textContent = zh ? '* 所有字段会自动同步。签字将在确认后插入。' : '* Все поля синхронизируются. Подпись вставляется после подтверждения.';
+            document.getElementById('saveHint').textContent = zh ? '📌 长按图片可保存到相册' : '📌 Длительно нажмите на изображение, чтобы сохранить в галерею';
+            shareImageBtn.textContent = zh ? '📤 分享' : '📤 Поделиться';
+            printImageBtn.textContent = zh ? '🖨 打印纸质文件' : '🖨 Печать бумажного документа';
+            backToFormBtn.textContent = zh ? '← 返回表单' : '← Вернуться к форме';
+
+            if (!smartInput.disabled) renderSmartStep();
+            else renderSmartProgress();
+        }
+
+        languageSelect.addEventListener('change', function() {
+            currentLang = this.value === 'zh' ? 'zh' : 'ru';
+            localStorage.setItem(LANG_KEY, currentLang);
+            smartIndex = 0;
+            smartInput.disabled = false;
+            smartNextBtn.disabled = false;
+            completionMessage.classList.remove('visible');
+            submissionSection.classList.remove('visible');
+            updateAll();
+            applyLanguage();
+        });
+
+        refreshPageBtn.addEventListener('click', function() {
+            localStorage.setItem(LANG_KEY, currentLang);
+            window.location.reload();
+        });
+
+        window.addEventListener('load', ()=>{ applyLanguage(); resizeCanvas(); updateAll(); renderSmartStep(); });
         window.addEventListener('resize', resizeCanvas);
 
+        applyLanguage();
         updateAll();
     })();
 </script>
